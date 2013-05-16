@@ -1,0 +1,46 @@
+{
+  "name": "ink-collector",
+  "version": "0.1.0",
+  "description": "*ink-probe* allows you to interrogate your objects and arrays",
+  "devDependencies": {
+    "jsdoc": "git://github.com/jsdoc3/jsdoc.git",
+    "grunt": "~0.4.1",
+    "grunt-shell": "~0.2.2",
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-contrib-uglify": "~0.2.0",
+    "grunt-contrib-jshint": "~0.4.3",
+    "grunt-contrib-coffee": "~0.7.0",
+    "async": "~0.2.8"
+  },
+  "dependencies": {
+    "lodash": "~1.2.1",
+    "ink-probe": "~0.1.0"
+  },
+  "license": "MIT",
+  "main": "./probe.js",
+  "keywords": [
+    "query",
+    "reach in",
+    "dot notation",
+    "data",
+    "update",
+    "array",
+    "object"
+  ],
+  "author": {
+    "name": "Terry Weiss",
+    "email": "me@terryweiss.net"
+  },
+  "bugs": {
+    "url": "https://github.com/terryweiss/ink-probe/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/terryweiss/ink-probe.git"
+  },
+  "engines": [
+    "node",
+    "rhino",
+    "web"
+  ]
+}
