@@ -334,3 +334,226 @@ exports["test a pluck"] = function ( test ) {
 
 };
 
+exports["test o pluck"] = function ( test ) {
+	var baseline = ocoll.map( function ( row ) {
+		return row.purchases;
+	} );
+
+	var res = ocoll.pluck( "purchases" );
+	test.deepEqual( baseline, res );
+	test.done();
+
+};
+
+exports["test a countBy filter"] = function ( test ) {
+	var hash = {};
+	acoll.each( function ( row ) {
+		if ( row.color && row.color.name === "Silver" ) {
+			if ( row.work ) {
+				if ( hash[row.work.company] ) {
+					hash[row.work.company]++;
+				} else {
+					hash[row.work.company] = 1;
+				}
+			} else {
+				if ( hash[null] ) {
+					hash[null]++;
+				} else {
+					hash[null] = 1;
+				}
+			}
+		}
+	} );
+	var res = acoll.countBy( {"color.name" : "Silver"}, function ( row ) {
+		if ( row.work ) {
+			return row.work.company;
+		} else {
+			return null;
+		}
+	} );
+	test.deepEqual( hash, res );
+	test.done();
+};
+
+exports["test o countBy filter"] = function ( test ) {
+	var hash = {};
+	ocoll.each( function ( row ) {
+		if ( row.color && row.color.name === "Shamrock" ) {
+			if ( row.work ) {
+				if ( hash[row.work.company] ) {
+					hash[row.work.company]++;
+				} else {
+					hash[row.work.company] = 1;
+				}
+			} else {
+				if ( hash[null] ) {
+					hash[null]++;
+				} else {
+					hash[null] = 1;
+				}
+			}
+		}
+	} );
+	var res = ocoll.countBy( {"color.name" : "Shamrock"}, function ( row ) {
+		if ( row.work ) {
+			return row.work.company;
+		} else {
+			return null;
+		}
+	} );
+	test.deepEqual( hash, res );
+	test.done();
+};
+
+exports["test a groupBy filter"] = function ( test ) {
+	var hash = {};
+	acoll.each( function ( row ) {
+		if ( row.color && row.color.name === "Raw Umber" ) {
+			if ( row.work ) {
+				if ( hash[row.work.city] ) {
+					hash[row.work.city].push( row );
+				} else {
+					hash[row.work.city] = [row];
+				}
+			} else {
+				if ( hash[null] ) {
+					hash[null].push( row );
+				} else {
+					hash[null] = [row];
+				}
+			}
+		}
+	} );
+	var res = acoll.groupBy( {"color.name" : "Raw Umber"}, function ( row ) {
+		if ( row.work ) {
+			return row.work.city;
+		} else {
+			return null;
+		}
+	} );
+	test.deepEqual( hash, res );
+	test.done();
+};
+
+exports["test o groupBy filter"] = function ( test ) {
+	var hash = {};
+	ocoll.each( function ( row ) {
+		if ( row.color && row.color.name === "Vivid Violet" ) {
+			if ( row.work ) {
+				if ( hash[row.work.city] ) {
+					hash[row.work.city].push( row );
+				} else {
+					hash[row.work.city] = [row];
+				}
+			} else {
+				if ( hash[null] ) {
+					hash[null].push( row );
+				} else {
+					hash[null] = [row];
+				}
+			}
+		}
+	} );
+	var res = ocoll.groupBy( {"color.name" : "Vivid Violet"}, function ( row ) {
+		if ( row.work ) {
+			return row.work.city;
+		} else {
+			return null;
+		}
+	} );
+	test.deepEqual( hash, res );
+	test.done();
+};
+
+exports["test o sortBy"] = function ( test ) {
+	var index = 0;
+
+	var sortable = ocoll.map( function ( row, key ) {
+		var val = { row: row.work  ? row.work.company : "", index: index, record: row};
+		index++;
+		return val;
+	} );
+
+	var sortKeys = sortable.sort(function(a, b){
+		var ai = a.index,
+			bi = b.index;
+
+		var av = a.row;
+		var bv = b.row;
+
+		if (av !== bv) {
+			if (av > bv ) {
+				return 1;
+			}
+			if (av < bv ) {
+				return -1;
+			}
+		}
+		return ai < bi ? -1 : 1;
+	});
+
+	var sorted = [];
+	var length = sortKeys.length;
+	while (length--) {
+		sorted[length] = sortKeys[length].record;
+	}
+
+
+	var res = ocoll.sortBy( function ( row ) {
+		if ( row.work ) {
+			return row.work.company;
+		} else {
+			return "";
+		}
+	} );
+
+	test.deepEqual( sorted, res );
+	test.done();
+};
+
+
+exports["test a sortBy"] = function ( test ) {
+	var index = 0;
+
+	var sortable = ocoll.map( function ( row, key ) {
+		var val = { row: row.work  ? row.work.city : "", index: index, record: row};
+		index++;
+		return val;
+	} );
+
+	var sortKeys = sortable.sort(function(a, b){
+		var ai = a.index,
+			bi = b.index;
+
+		var av = a.row;
+		var bv = b.row;
+
+		if (av !== bv) {
+			if (av > bv ) {
+				return 1;
+			}
+			if (av < bv ) {
+				return -1;
+			}
+		}
+		return ai < bi ? -1 : 1;
+	});
+
+	var sorted = [];
+	var length = sortKeys.length;
+	while (length--) {
+		sorted[length] = sortKeys[length].record;
+	}
+
+
+	var res = ocoll.sortBy( function ( row ) {
+		if ( row.work ) {
+			return row.work.city;
+		} else {
+			return "";
+		}
+	} );
+
+	test.deepEqual( sorted, res );
+	test.done();
+};

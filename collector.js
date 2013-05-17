@@ -18,6 +18,7 @@
   /**
   A collector
   @constructor
+  @mixes module:ink/probe
   */
 
 
@@ -248,7 +249,7 @@
         return sys.sortBy(this.find(query), iterator, thisobj);
       } else {
         thisobj = iterator || this;
-        return sys.sortBy(query, thisobj);
+        return sys.sortBy(this.heap, query, thisobj);
       }
     };
 

@@ -8,7 +8,7 @@ sys = require( "lodash" )
 ###*
 A collector
 @constructor
-
+@mixes module:ink/probe
 ###
 class CollectorBase
   constructor: ( obj )->
@@ -191,7 +191,7 @@ class CollectorBase
       return sys.sortBy( @find( query ), iterator, thisobj )
     else
       thisobj = iterator || @
-      return sys.sortBy( query, thisobj )
+      return sys.sortBy( @heap, query, thisobj )
 
 
 ###*
