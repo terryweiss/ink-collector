@@ -3,7 +3,7 @@ var path = require( "path" );
 var sys = require( "lodash" );
 
 var jsdocPublicApi = {
-	src       : ["./collector.js", "README.md", "./node_modules/ink-probe/probe.js"],
+	src       : ["./collector.js", "README.md"],
 	dest      : "./dox",
 	tutorials : "./",
 	template  : "./etc/doc-template",

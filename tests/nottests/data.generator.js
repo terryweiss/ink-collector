@@ -2,7 +2,7 @@
 var fs = require( "fs" );
 var path = require( "path" );
 var async = require( "async" );
-var collector = require( "../collector" );
+var collector = require( "../../collector" );
 var sys = require( "lodash" );
 
 var firstnames = null;
@@ -43,7 +43,7 @@ exports.generate = function ( cb ) {
 			} );
 		}
 	], function () {
-		acoll = collector.collect( sys.times( 6000, function () {
+		acoll = collector.array( sys.times( 60000, function () {
 			return {
 				name      : {
 					first : firstnames.index( sys.random( 0, firstnames.length - 1 ) ),
@@ -55,8 +55,8 @@ exports.generate = function ( cb ) {
 			};
 		} ) );
 
-		ocoll = collector.collect( {} );
-		sys.times( 6000, function ( n ) {
+		ocoll = collector.object( {} );
+		sys.times( 60000, function ( n ) {
 			ocoll.add( n, {
 				name      : {
 					first : firstnames.index( sys.random( 0, firstnames.length - 1 ) ),

@@ -7,9 +7,9 @@
 
 (function() {
   var ACollector, CollectorBase, OCollector, probe, sys, _ref,
-    __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    __slice = [].slice;
 
   probe = require("ink-probe");
 
@@ -18,7 +18,6 @@
   /**
   A collector
   @constructor
-  @mixes module:ink/probe
   */
 
 
@@ -51,7 +50,7 @@
     Get the size of the collection
     @name length
     @type {integer}
-    @memberOf module:ink/collector~CollectorBase
+    @memberOf module:ink/collector~CollectorBase#
     */
 
 
@@ -72,7 +71,7 @@
 
 
     CollectorBase.prototype.each = function(query, iterator, thisobj) {
-      if (sys.isFunction(iterator)) {
+      if (sys.isPlainObject(query)) {
         thisobj = thisobj || this;
         return sys.each(this.find(query), iterator, thisobj);
       } else {
@@ -113,7 +112,7 @@
 
 
     CollectorBase.prototype.map = function(query, iterator, thisobj) {
-      if (sys.isFunction(iterator)) {
+      if (sys.isPlainObject(query)) {
         thisobj = thisobj || this;
         return sys.map(this.find(query), iterator, thisobj);
       } else {
@@ -136,27 +135,13 @@
 
 
     CollectorBase.prototype.reduce = function(query, iterator, accumulator, thisobj) {
-      if (sys.isFunction(iterator)) {
+      if (sys.isPlainObject(query)) {
         thisobj = thisobj || this;
         return sys.reduce(this.find(query), iterator, accumulator, thisobj);
       } else {
         thisobj = accumulator || this;
         return sys.reduce(this.heap, query, iterator, thisobj);
       }
-    };
-
-    /**
-    Creates an array of elements from the specified indexes, or keys, of the collection. Indexes may be specified as
-    individual arguments or as arrays of indexes
-    @param {indexes} args The indexes to use
-    */
-
-
-    CollectorBase.prototype.at = function() {
-      var args;
-
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      return sys.at.apply(sys, [this.heap].concat(__slice.call(args)));
     };
 
     /**
@@ -172,7 +157,7 @@
 
 
     CollectorBase.prototype.countBy = function(query, iterator, thisobj) {
-      if (sys.isFunction(iterator)) {
+      if (sys.isPlainObject(query)) {
         thisobj = thisobj || this;
         return sys.countBy(this.find(query), iterator, thisobj);
       } else {
@@ -194,7 +179,7 @@
 
 
     CollectorBase.prototype.groupBy = function(query, iterator, thisobj) {
-      if (sys.isFunction(iterator)) {
+      if (sys.isPlainObject(query)) {
         thisobj = thisobj || this;
         return sys.groupBy(this.find(query), iterator, thisobj);
       } else {
@@ -228,6 +213,8 @@
     /**
     Creates an array of shuffled array values, using a version of the Fisher-Yates shuffle.
     See http://en.wikipedia.org/wiki/Fisher-Yates_shuffle.
+    @function
+    @returns {array}
     */
 
 
@@ -244,12 +231,54 @@
 
 
     CollectorBase.prototype.sortBy = function(query, iterator, thisobj) {
-      if (sys.isFunction(iterator)) {
+      if (sys.isPlainObject(query)) {
         thisobj = thisobj || this;
         return sys.sortBy(this.find(query), iterator, thisobj);
       } else {
         thisobj = iterator || this;
         return sys.sortBy(this.heap, query, thisobj);
+      }
+    };
+
+    /**
+    Retrieves the maximum value of an array. If callback is passed,
+    it will be executed for each value in the array to generate the criterion by which the value is ranked.
+    @param {object=} query A query to evaluate . If you pass in a query, only the items that match the query
+    are iterated over.
+    @param {function(value, key, collection)} iterator
+    @param {object=} thisobj The value of `this`
+    @return {number}
+    */
+
+
+    CollectorBase.prototype.max = function(query, iterator, thisobj) {
+      if (sys.isObject(query)) {
+        thisobj = thisobj || this;
+        return sys.max(this.find(query), iterator, thisobj);
+      } else {
+        thisobj = iterator || this;
+        return sys.max(this.heap, query, thisobj);
+      }
+    };
+
+    /**
+    Retrieves the minimum value of an array. If callback is passed, it will be executed for each value in the array to generate
+    the criterion by which the value is ranked.
+    @param {object=} query A query to evaluate . If you pass in a query, only the items that match the query
+    are iterated over.
+    @param {function(value, key, collection)} iterator
+    @param {object=} thisobj The value of `this`
+    @return {number}
+    */
+
+
+    CollectorBase.prototype.min = function(query, iterator, thisobj) {
+      if (sys.isPlainObject(query)) {
+        thisobj = thisobj || this;
+        return sys.min(this.find(query), iterator, thisobj);
+      } else {
+        thisobj = iterator || this;
+        return sys.min(this.heap, query, thisobj);
       }
     };
 
@@ -286,7 +315,7 @@
   @return {object}
   @method
   @name key
-  @memberof module:ink/collector~OCollector
+  @memberof module:ink/collector~OCollector#
   */
 
 
@@ -304,8 +333,8 @@
       if (obj && !sys.isArray(obj)) {
         throw new Error("The Collector Array expects an array");
       }
-      CollectorBase.call(this, obj);
       this.heap = obj || [];
+      probe.mixTo(this, this.heap);
     }
 
     /**
@@ -336,48 +365,6 @@
 
     ACollector.prototype.push = function(item) {
       return this.add(item);
-    };
-
-    /**
-    Retrieves the maximum value of an array. If callback is passed,
-    it will be executed for each value in the array to generate the criterion by which the value is ranked.
-    @param {object=} query A query to evaluate . If you pass in a query, only the items that match the query
-    are iterated over.
-    @param {function(value, key, collection)} iterator
-    @param {object=} thisobj The value of `this`
-    @return {number}
-    */
-
-
-    ACollector.prototype.max = function(query, iterator, thisobj) {
-      if (sys.isFunction(iterator)) {
-        thisobj = thisobj || this;
-        return sys.max(this.find(query), iterator, thisobj);
-      } else {
-        thisobj = iterator || this;
-        return sys.max(this.heap, query, thisobj);
-      }
-    };
-
-    /**
-    Retrieves the minimum value of an array. If callback is passed, it will be executed for each value in the array to generate
-    the criterion by which the value is ranked.
-    @param {object=} query A query to evaluate . If you pass in a query, only the items that match the query
-    are iterated over.
-    @param {function(value, key, collection)} iterator
-    @param {object=} thisobj The value of `this`
-    @return {number}
-    */
-
-
-    ACollector.prototype.min = function(query, iterator, thisobj) {
-      if (sys.isFunction(iterator)) {
-        thisobj = thisobj || this;
-        return sys.min(this.find(query), iterator, thisobj);
-      } else {
-        thisobj = iterator || this;
-        return sys.min(this.heap, query, thisobj);
-      }
     };
 
     /**
@@ -416,6 +403,20 @@
     ACollector.prototype.head = sys.bind(sys.head, ACollector, ACollector.heap);
 
     /**
+    Creates an array of elements from the specified indexes, or keys, of the collection. Indexes may be specified as
+    individual arguments or as arrays of indexes
+    @param {indexes} args The indexes to use
+    */
+
+
+    ACollector.prototype.at = function() {
+      var args;
+
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      return sys.at.apply(sys, [this.heap].concat(__slice.call(args)));
+    };
+
+    /**
     Flattens a nested array (the nesting can be to any depth). If isShallow is truthy, array will only be flattened a single level.
     If callback is passed, each element of array is passed through a callback before flattening.
     @param {object=} query A query to evaluate . If you pass in a query, only the items that match the query
@@ -427,7 +428,7 @@
 
 
     ACollector.prototype.flatten = function(query, iterator, thisobj) {
-      if (sys.isFunction(iterator)) {
+      if (sys.isPlainObject(query)) {
         thisobj = thisobj || this;
         return sys.flatten(this.find(query), iterator, thisobj);
       } else {
@@ -485,6 +486,125 @@
   exports.object = function(obj) {
     return new OCollector(obj);
   };
+
+  /**
+  Returns true if all items match the query. Aliases as `all`
+  @function
+  
+  @param {object} qu The query to execute
+  @returns {boolean}
+  @name every
+  @memberOf module:ink/collector~CollectorBase#
+  */
+
+
+  /**
+  Returns true if any of the items match the query. Aliases as `any`
+  @function
+  
+  @param {object} qu The query to execute
+  @returns {boolean}
+  @memberOf module:ink/collector~CollectorBase#
+  @name some
+  */
+
+
+  /**
+Returns the set of unique records that match a query
+
+@param {object} qu The query to execute.
+@return {array}
+@memberOf module:ink/collector~CollectorBase#
+@name unique
+@method
+**/;
+
+  /**
+  Returns true if all items match the query. Aliases as `every`
+  @function
+  
+  @param {object} qu The query to execute
+  @returns {boolean}
+  @name all
+  @memberOf module:ink/collector~CollectorBase#
+  */
+
+
+  /**
+  Returns true if any of the items match the query. Aliases as `all`
+  @function
+  
+  @param {object} qu The query to execute
+  @returns {boolean}
+  @memberOf module:ink/collector~CollectorBase#
+  @name any
+  */
+
+
+  /**
+Remove all items in the object/array that match the query
+
+@param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
+@return {object|array} The array or object as appropriate without the records.
+@memberOf module:ink/collector~CollectorBase#
+@name remove
+@method
+**/;
+
+  /**
+  Returns the first record that matches the query and returns its key or index depending on whether `obj` is an object or array respectively.
+  Aliased as `seekKey`.
+  
+  @param {object} qu The query to execute.
+  @returns {object}
+  @memberOf module:ink/collector~CollectorBase#
+  @name findOneKey
+  @method
+  */
+
+
+  /**
+  Returns the first record that matches the query. Aliased as `seek`.
+  
+  @param {object} qu The query to execute.
+  @returns {object}
+  @memberOf module:ink/collector~CollectorBase#
+  @name findOne
+  @method
+  */
+
+
+  /**
+  Find all records that match a query and returns the keys for those items. This is similar to {@link module:ink/probe.find} but instead of returning
+  records, returns the keys. If `obj` is an object it will return the hash key. If 'obj' is an array, it will return the index
+  
+  @param {object} qu The query to execute.
+  @returns {array}
+  @memberOf module:ink/collector~CollectorBase#
+  @name findKeys
+  @method
+  */
+
+
+  /**
+Find all records that match a query
+
+@param {object} qu The query to execute.
+@returns {array} The results
+@memberOf module:ink/collector~CollectorBase#
+@name find
+@method
+**/;
+
+  /**
+Updates all records in obj that match the query. See {@link module:ink/probe.updateOperators} for the operators that are supported.
+
+@param {object} qu The query which will be used to identify the records to updated
+@param {object} setDocument The update operator. See {@link module:ink/probe.updateOperators}
+@memberOf module:ink/collector~CollectorBase#
+@name update
+@method
+ */;
 
 }).call(this);
 

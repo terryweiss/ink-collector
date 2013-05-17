@@ -2,7 +2,7 @@
 var fs = require( "fs" );
 var path = require( "path" );
 var sys = require( "lodash" );
-var generator = require( "./data.generator" );
+var generator = require( "./nottests/data.generator.js" );
 
 var collector = require( "../collector" );
 var ocoll, acoll;
@@ -11,8 +11,8 @@ exports["get data"] = function ( test ) {
 	generator.generate( function ( a, o ) {
 		ocoll = o;
 		acoll = a;
-		test.equal( ocoll.length, 6000 );
-		test.equal( acoll.length, 6000 );
+		test.equal( ocoll.length, 60000 );
+		test.equal( acoll.length, 60000 );
 		test.done();
 	} );
 };
@@ -192,20 +192,6 @@ exports["test a at"] = function ( test ) {
 	} );
 
 	var found = acoll.at( indices );
-	test.deepEqual( baseline, found );
-
-	test.done();
-};
-
-exports["test o at"] = function ( test ) {
-	var indices = sys.times( sys.random( 0, ocoll.length - 1 ), function () {
-		return sys.random( 0, ocoll.length - 1 );
-	} );
-	var baseline = sys.map( indices, function ( index ) {
-		return ocoll.heap[index];
-	} );
-
-	var found = ocoll.at( indices );
 	test.deepEqual( baseline, found );
 
 	test.done();
@@ -469,35 +455,34 @@ exports["test o sortBy"] = function ( test ) {
 	var index = 0;
 
 	var sortable = ocoll.map( function ( row, key ) {
-		var val = { row: row.work  ? row.work.company : "", index: index, record: row};
+		var val = { row : row.work ? row.work.company : "", index : index, record : row};
 		index++;
 		return val;
 	} );
 
-	var sortKeys = sortable.sort(function(a, b){
+	var sortKeys = sortable.sort( function ( a, b ) {
 		var ai = a.index,
 			bi = b.index;
 
 		var av = a.row;
 		var bv = b.row;
 
-		if (av !== bv) {
-			if (av > bv ) {
+		if ( av !== bv ) {
+			if ( av > bv ) {
 				return 1;
 			}
-			if (av < bv ) {
+			if ( av < bv ) {
 				return -1;
 			}
 		}
 		return ai < bi ? -1 : 1;
-	});
+	} );
 
 	var sorted = [];
 	var length = sortKeys.length;
-	while (length--) {
+	while ( length-- ) {
 		sorted[length] = sortKeys[length].record;
 	}
-
 
 	var res = ocoll.sortBy( function ( row ) {
 		if ( row.work ) {
@@ -511,40 +496,38 @@ exports["test o sortBy"] = function ( test ) {
 	test.done();
 };
 
-
 exports["test a sortBy"] = function ( test ) {
 	var index = 0;
 
 	var sortable = ocoll.map( function ( row, key ) {
-		var val = { row: row.work  ? row.work.city : "", index: index, record: row};
+		var val = { row : row.work ? row.work.city : "", index : index, record : row};
 		index++;
 		return val;
 	} );
 
-	var sortKeys = sortable.sort(function(a, b){
+	var sortKeys = sortable.sort( function ( a, b ) {
 		var ai = a.index,
 			bi = b.index;
 
 		var av = a.row;
 		var bv = b.row;
 
-		if (av !== bv) {
-			if (av > bv ) {
+		if ( av !== bv ) {
+			if ( av > bv ) {
 				return 1;
 			}
-			if (av < bv ) {
+			if ( av < bv ) {
 				return -1;
 			}
 		}
 		return ai < bi ? -1 : 1;
-	});
+	} );
 
 	var sorted = [];
 	var length = sortKeys.length;
-	while (length--) {
+	while ( length-- ) {
 		sorted[length] = sortKeys[length].record;
 	}
-
 
 	var res = ocoll.sortBy( function ( row ) {
 		if ( row.work ) {
@@ -555,5 +538,156 @@ exports["test a sortBy"] = function ( test ) {
 	} );
 
 	test.deepEqual( sorted, res );
+	test.done();
+};
+
+exports["test a max"] = function ( test ) {
+	var max = 0;
+	var maxRecord = null;
+	acoll.each( function ( row ) {
+		if ( row.purchases > max ) {
+			max = row.purchases;
+			maxRecord = row;
+		}
+	} );
+
+	var found = acoll.max( "purchases" );
+	test.deepEqual( maxRecord, found );
+	test.done();
+
+};
+
+exports["test o max"] = function ( test ) {
+	var max = 0;
+	var maxRecord = null;
+	ocoll.each( function ( row ) {
+		if ( row.purchases > max ) {
+			max = row.purchases;
+			maxRecord = row;
+		}
+	} );
+
+	var found = ocoll.max( "purchases" );
+	test.deepEqual( maxRecord, found );
+	test.done();
+
+};
+
+exports["test a max filter"] = function ( test ) {
+	var max = 0;
+	var maxRecord = null;
+	acoll.each( function ( row ) {
+		if ( row.color && row.color.name === "Wisteria" ) {
+			if ( row.purchases > max ) {
+				max = row.purchases;
+				maxRecord = row;
+			}
+		}
+	} );
+
+	var found = acoll.max( {"color.name" : "Wisteria"}, "purchases" );
+	test.deepEqual( maxRecord, found );
+	test.done();
+
+};
+
+exports["test o max filter"] = function ( test ) {
+	var max = 0;
+	var maxRecord = null;
+	ocoll.each( function ( row ) {
+		if ( row.color && row.color.name === "Screamin' Green" ) {
+			if ( row.purchases > max ) {
+				max = row.purchases;
+				maxRecord = row;
+			}
+		}
+	} );
+
+	var found = ocoll.max( {"color.name" : "Screamin' Green"}, "purchases" );
+	test.deepEqual( maxRecord, found );
+	test.done();
+
+};
+
+exports["test a min"] = function ( test ) {
+	var min = 10000000;
+	var minRecord = null;
+	acoll.each( function ( row ) {
+		if ( row.purchases < min ) {
+			min = row.purchases;
+			minRecord = row;
+		}
+	} );
+
+	var found = acoll.min( "purchases" );
+	test.deepEqual( minRecord, found );
+	test.done();
+
+};
+
+exports["test o min"] = function ( test ) {
+	var min = 1000000;
+	var minRecord = null;
+	ocoll.each( function ( row ) {
+		if ( row.purchases < min ) {
+			min = row.purchases;
+			minRecord = row;
+		}
+	} );
+
+	var found = ocoll.min( "purchases" );
+	test.deepEqual( minRecord, found );
+	test.done();
+
+};
+
+exports["test a min filter"] = function ( test ) {
+	var min = 10000;
+	var minRecord = null;
+	acoll.each( function ( row ) {
+		if ( row.color && row.color.name === "Wisteria" ) {
+			if ( row.purchases < min ) {
+				min = row.purchases;
+				minRecord = row;
+			}
+		}
+	} );
+
+	var found = acoll.min( {"color.name" : "Wisteria"}, "purchases" );
+	test.deepEqual( minRecord, found );
+	test.done();
+
+};
+
+exports["test o min filter"] = function ( test ) {
+	var min = 100000;
+	var minRecord = null;
+	ocoll.each( function ( row ) {
+		if ( row.color && row.color.name === "Screamin' Green" ) {
+			if ( row.purchases < min ) {
+				min = row.purchases;
+				minRecord = row;
+			}
+		}
+	} );
+
+	var found = ocoll.min( {"color.name" : "Screamin' Green"}, "purchases" );
+	test.deepEqual( minRecord, found );
+	test.done();
+
+};
+
+exports["test a any"] = function ( test ) {
+	var foundOne;
+	acoll.each( function ( row ) {
+		if ( row.color && row.color.name ) {
+			foundOne = row.color.name;
+			return false;
+		}
+	} );
+
+	var res = acoll.any( {"color.name" : foundOne} );
+
+	test.equal( !sys.isEmpty( foundOne ), res );
 	test.done();
 };

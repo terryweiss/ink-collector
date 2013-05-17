@@ -8,7 +8,7 @@ sys = require( "lodash" )
 ###*
 A collector
 @constructor
-@mixes module:ink/probe
+
 ###
 class CollectorBase
   constructor: ( obj )->
@@ -35,7 +35,7 @@ class CollectorBase
   Get the size of the collection
   @name length
   @type {integer}
-  @memberOf module:ink/collector~CollectorBase
+  @memberOf module:ink/collector~CollectorBase#
   ###
   Object.defineProperty( @::, "length",
     get: ->
@@ -50,7 +50,7 @@ class CollectorBase
   @param {object=} thisobj The value of `this`
   ###
   each   : ( query, iterator, thisobj )->
-    if (sys.isFunction( iterator ))
+    if (sys.isPlainObject( query ))
       thisobj = thisobj || @
       sys.each( @.find( query ), iterator, thisobj )
     else
@@ -81,7 +81,7 @@ class CollectorBase
   @return {array}
   ###
   map    : ( query, iterator, thisobj )->
-    if (sys.isFunction( iterator ))
+    if (sys.isPlainObject( query ))
       thisobj = thisobj || @
       return sys.map( @.find( query ), iterator, thisobj )
     else
@@ -101,20 +101,14 @@ class CollectorBase
   @return {*}
   ###
   reduce : ( query, iterator, accumulator, thisobj )->
-    if (sys.isFunction( iterator ))
+    if (sys.isPlainObject( query ))
       thisobj = thisobj || @
       return sys.reduce( @.find( query ), iterator, accumulator, thisobj )
     else
       thisobj = accumulator || @
       return sys.reduce( @heap, query, iterator, thisobj )
 
-  ###*
-  Creates an array of elements from the specified indexes, or keys, of the collection. Indexes may be specified as
-  individual arguments or as arrays of indexes
-  @param {indexes} args The indexes to use
-  ###
-  at     : ( args... )->
-    return sys.at( @heap, args... )
+
 
   ###*
   Creates an object composed of keys returned from running each element
@@ -127,7 +121,7 @@ class CollectorBase
   @return {object}
   ###
   countBy: ( query, iterator, thisobj )->
-    if (sys.isFunction( iterator ))
+    if (sys.isPlainObject( query ))
       thisobj = thisobj || @
       return sys.countBy( @.find( query ), iterator, thisobj )
     else
@@ -146,7 +140,7 @@ class CollectorBase
   @return {object}
   ###
   groupBy: ( query, iterator, thisobj )->
-    if (sys.isFunction( iterator ))
+    if (sys.isPlainObject( query ))
       thisobj = thisobj || @
       return sys.groupBy( @.find( query ), iterator, thisobj )
     else
@@ -174,6 +168,8 @@ class CollectorBase
   ###*
   Creates an array of shuffled array values, using a version of the Fisher-Yates shuffle.
   See http://en.wikipedia.org/wiki/Fisher-Yates_shuffle.
+  @function
+  @returns {array}
   ###
   shuffle: sys.bind( sys.shuffle, @, @heap )
 
@@ -186,12 +182,49 @@ class CollectorBase
   @return {array}
   ###
   sortBy : ( query, iterator, thisobj )->
-    if (sys.isFunction( iterator ))
+    if (sys.isPlainObject( query ))
       thisobj = thisobj || @
       return sys.sortBy( @find( query ), iterator, thisobj )
     else
       thisobj = iterator || @
       return sys.sortBy( @heap, query, thisobj )
+
+  ###*
+  Retrieves the maximum value of an array. If callback is passed,
+  it will be executed for each value in the array to generate the criterion by which the value is ranked.
+  @param {object=} query A query to evaluate . If you pass in a query, only the items that match the query
+  are iterated over.
+  @param {function(value, key, collection)} iterator
+  @param {object=} thisobj The value of `this`
+  @return {number}
+  ###
+  max        : ( query, iterator, thisobj )->
+    if (sys.isObject( query))
+      thisobj = thisobj || @
+      return sys.max( @find( query ), iterator, thisobj )
+    else
+      thisobj = iterator || @
+      return sys.max( @.heap, query, thisobj )
+
+
+
+  ###*
+  Retrieves the minimum value of an array. If callback is passed, it will be executed for each value in the array to generate
+  the criterion by which the value is ranked.
+  @param {object=} query A query to evaluate . If you pass in a query, only the items that match the query
+  are iterated over.
+  @param {function(value, key, collection)} iterator
+  @param {object=} thisobj The value of `this`
+  @return {number}
+  ###
+  min        : ( query, iterator, thisobj )->
+    if (sys.isPlainObject( query ))
+      thisobj = thisobj || @
+      return sys.min( @find( query ), iterator, thisobj )
+    else
+      thisobj = iterator || @
+      return sys.min( @.heap, query, thisobj )
+
 
 
 ###*
@@ -210,7 +243,7 @@ Gets an items by its key
 @return {object}
 @method
 @name key
-@memberof module:ink/collector~OCollector
+@memberof module:ink/collector~OCollector#
 ###
 
 ###*
@@ -223,11 +256,9 @@ class ACollector extends CollectorBase
   constructor: ( obj )->
     if (obj && !sys.isArray( obj ))
       throw new Error( "The Collector Array expects an array" )
-    # make sure the constructor is called
-    CollectorBase.call( this, obj );
-
 
     @heap = obj || []
+    probe.mixTo( @, @heap )
 
 
   ###*
@@ -251,41 +282,6 @@ class ACollector extends CollectorBase
   push       : ( item )->
     @add( item )
 
-  ###*
-  Retrieves the maximum value of an array. If callback is passed,
-  it will be executed for each value in the array to generate the criterion by which the value is ranked.
-  @param {object=} query A query to evaluate . If you pass in a query, only the items that match the query
-  are iterated over.
-  @param {function(value, key, collection)} iterator
-  @param {object=} thisobj The value of `this`
-  @return {number}
-  ###
-  max        : ( query, iterator, thisobj )->
-    if (sys.isFunction( iterator ))
-      thisobj = thisobj || @
-      return sys.max( @find( query ), iterator, thisobj )
-    else
-      thisobj = iterator || @
-      return sys.max( @.heap, query, thisobj )
-
-
-
-  ###*
-  Retrieves the minimum value of an array. If callback is passed, it will be executed for each value in the array to generate
-  the criterion by which the value is ranked.
-  @param {object=} query A query to evaluate . If you pass in a query, only the items that match the query
-  are iterated over.
-  @param {function(value, key, collection)} iterator
-  @param {object=} thisobj The value of `this`
-  @return {number}
-  ###
-  min        : ( query, iterator, thisobj )->
-    if (sys.isFunction( iterator ))
-      thisobj = thisobj || @
-      return sys.min( @find( query ), iterator, thisobj )
-    else
-      thisobj = iterator || @
-      return sys.min( @.heap, query, thisobj )
 
   ###*
   Modifies the collection with all falsey values of array removed. The values false, null, 0, "", undefined and NaN are all falsey.
@@ -314,6 +310,14 @@ class ACollector extends CollectorBase
   head       : sys.bind( sys.head, @, @heap )
 
   ###*
+  Creates an array of elements from the specified indexes, or keys, of the collection. Indexes may be specified as
+  individual arguments or as arrays of indexes
+  @param {indexes} args The indexes to use
+  ###
+  at     : ( args... )->
+    return sys.at( @heap, args... )
+
+  ###*
   Flattens a nested array (the nesting can be to any depth). If isShallow is truthy, array will only be flattened a single level.
   If callback is passed, each element of array is passed through a callback before flattening.
   @param {object=} query A query to evaluate . If you pass in a query, only the items that match the query
@@ -323,7 +327,7 @@ class ACollector extends CollectorBase
   @return {number}
   ###
   flatten    : ( query, iterator, thisobj )->
-    if (sys.isFunction( iterator ))
+    if (sys.isPlainObject( query ))
       thisobj = thisobj || @
       return sys.flatten( @find( query ), iterator, thisobj )
     else
@@ -363,3 +367,118 @@ Create an object collector
 exports.object = ( obj )->
   return new OCollector( obj )
 
+
+
+###*
+Returns true if all items match the query. Aliases as `all`
+@function
+
+@param {object} qu The query to execute
+@returns {boolean}
+@name every
+@memberOf module:ink/collector~CollectorBase#
+###
+
+###*
+Returns true if any of the items match the query. Aliases as `any`
+@function
+
+@param {object} qu The query to execute
+@returns {boolean}
+@memberOf module:ink/collector~CollectorBase#
+@name some
+###
+
+`/**
+Returns the set of unique records that match a query
+
+@param {object} qu The query to execute.
+@return {array}
+@memberOf module:ink/collector~CollectorBase#
+@name unique
+@method
+**/`
+
+
+###*
+Returns true if all items match the query. Aliases as `every`
+@function
+
+@param {object} qu The query to execute
+@returns {boolean}
+@name all
+@memberOf module:ink/collector~CollectorBase#
+###
+
+###*
+Returns true if any of the items match the query. Aliases as `all`
+@function
+
+@param {object} qu The query to execute
+@returns {boolean}
+@memberOf module:ink/collector~CollectorBase#
+@name any
+###
+
+`/**
+Remove all items in the object/array that match the query
+
+@param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
+@return {object|array} The array or object as appropriate without the records.
+@memberOf module:ink/collector~CollectorBase#
+@name remove
+@method
+**/`
+
+
+###*
+Returns the first record that matches the query and returns its key or index depending on whether `obj` is an object or array respectively.
+Aliased as `seekKey`.
+
+@param {object} qu The query to execute.
+@returns {object}
+@memberOf module:ink/collector~CollectorBase#
+@name findOneKey
+@method
+###
+
+###*
+Returns the first record that matches the query. Aliased as `seek`.
+
+@param {object} qu The query to execute.
+@returns {object}
+@memberOf module:ink/collector~CollectorBase#
+@name findOne
+@method
+###
+
+###*
+Find all records that match a query and returns the keys for those items. This is similar to {@link module:ink/probe.find} but instead of returning
+records, returns the keys. If `obj` is an object it will return the hash key. If 'obj' is an array, it will return the index
+
+@param {object} qu The query to execute.
+@returns {array}
+@memberOf module:ink/collector~CollectorBase#
+@name findKeys
+@method
+###
+
+`/**
+Find all records that match a query
+
+@param {object} qu The query to execute.
+@returns {array} The results
+@memberOf module:ink/collector~CollectorBase#
+@name find
+@method
+**/`
+
+`/**
+Updates all records in obj that match the query. See {@link module:ink/probe.updateOperators} for the operators that are supported.
+
+@param {object} qu The query which will be used to identify the records to updated
+@param {object} setDocument The update operator. See {@link module:ink/probe.updateOperators}
+@memberOf module:ink/collector~CollectorBase#
+@name update
+@method
+ */`
