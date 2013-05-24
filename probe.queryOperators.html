@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title> ink-strings Namespace: queryOperators</title>
+
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/bootstrap.css">
+    <!--<link type="text/css" rel="stylesheet" href="styles/darkstrap-v0.9.0.css">-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/site.css">
+    <!-- <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css"> -->
+</head>
+
+<body>
+<div class="container-fluid">
+	<div class="row-fluid">
+		<div class="span8">
+			<div id="main">
+
+			    <h1 class="page-title">Namespace: queryOperators</h1>
+
+			    
+
+
+
+<section>
+    
+<header>
+    <h2>
+        <span class="ancestors"><a href="probe.html">ink/probe</a>.</span>
+    
+    queryOperators
+    </h2>
+    
+</header>  
+
+<article>
+    <div class="container-overview">
+    
+    
+    
+        
+            <div class="description"><p>Query operators</p></div>
+        
+        
+        
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 15
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+        
+        
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        <h3 class="subsection-title">Members</h3>
+        
+        <dl>
+            
+<dt>
+    <h4 class="name" id="$all"><span class="type-signature">&lt;static> </span>$all<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p><code>$all</code> checks to see if all of the members of the query are included in an array
+    <code>{array: {$all: [val1, val2, val3]}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 401
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {"categories" : {$all : ["cat4", "cat2", "cat1"]}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$and"><span class="type-signature">&lt;static> </span>$and<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Returns true if all of the conditions of the query are met
+    <code>{$and: [query1, query2, query3]}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 596
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {$and : [
+    		{"name.first" : "Mildred"},
+    		{"name.last" : "Graves"}
+    	]} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$elemMatch"><span class="type-signature">&lt;static> </span>$elemMatch<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>This is like $all except that it works with an array of objects or value. It checks to see the array matches all
+    of the conditions of the query
+    <code>{array: {$elemMatch: {path: value, path: {$operation: value2}}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 568
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {attr : {$elemMatch : [
+    		{color : "red", "hand" : "left"}
+    	]}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$eq"><span class="type-signature">&lt;static> </span>$eq<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p><code>$eq</code> performs a <code>===</code> comparison by comparing the value directly if it is an atomic value.
+    otherwise if it is an array, it checks to see if the value looked for is in the array.
+    <code>{field: value}</code> or <code>{field: {$eq : value}}</code> or <code>{array: value}</code> or <code>{array: {$eq : value}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 359
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {categories : "cat1"} );
+    // is the same as
+    probe.find( data, {categories : {$eq: "cat1"}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$exists"><span class="type-signature">&lt;static> </span>$exists<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p><code>$exists</code> Sees if a field exists.
+    <code>{field: {$exists: true|false}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 505
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {"name.middle" : {$exists : true}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$gt"><span class="type-signature">&lt;static> </span>$gt<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p><code>$gt</code> Sees if a field is greater than the value
+    <code>{field: {$gt: value}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 421
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {"age" : {$gt : 24}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$gte"><span class="type-signature">&lt;static> </span>$gte<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p><code>$gte</code> Sees if a field is greater than or equal to the value
+    <code>{field: {$gte: value}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 434
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {"age" : {$gte : 50}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$in"><span class="type-signature">&lt;static> </span>$in<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p><code>$in</code> Sees if a field has one of the values in the query
+    <code>{field: {$in: [test1, test2, test3,...]}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 473
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {"age" : {$in : [24, 28, 60]}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$lt"><span class="type-signature">&lt;static> </span>$lt<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p><code>$lt</code> Sees if a field is less than the value
+    <code>{field: {$lt: value}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 447
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {"age" : {$lt : 24}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$lte"><span class="type-signature">&lt;static> </span>$lte<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p><code>$lte</code> Sees if a field is less than or equal to the value
+    <code>{field: {$lte: value}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 460
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {"age" : {$lte : 50}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$mod"><span class="type-signature">&lt;static> </span>$mod<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Checks equality to a modulus operation on a field
+    <code>{field: {$mod: [divisor, remainder]}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 518
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {"age" : {$mod : [2, 0]}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$ne"><span class="type-signature">&lt;static> </span>$ne<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p><code>$ne</code> performs a <code>!==</code> comparison by comparing the value directly if it is an atomic value. Otherwise, if it is an array
+    this is performs a &quot;not in array&quot;.
+    '{field: {$ne : value}}<code>or '{array: {$ne : value}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 381
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {"name.first" : {$ne : "Sheryl"}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$nin"><span class="type-signature">&lt;static> </span>$nin<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p><code>$nin</code> Sees if a field has none of the values in the query
+    <code>{field: {$nin: [test1, test2, test3,...]}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 489
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {"age" : {$nin : [24, 28, 60]}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$nor"><span class="type-signature">&lt;static> </span>$nor<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Returns true if none of the conditions of the query are met
+    <code>{$nor: [query1, query2, query3]}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 662
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {$nor : [
+    		{"age" : {$in : [24, 28, 60]}},
+    		{categories : "cat1"}
+    	]} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$not"><span class="type-signature">&lt;static> </span>$not<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Logical NOT on the conditions of the query
+    <code>{$not: [query1, query2, query3]}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 695
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {$not : {"age" : {$lt : 24}}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$or"><span class="type-signature">&lt;static> </span>$or<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Returns true if any of the conditions of the query are met
+    <code>{$or: [query1, query2, query3]}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 629
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {$or : [
+    		{"age" : {$in : [24, 28, 60]}},
+    		{categories : "cat1"}
+    	]} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$regex"><span class="type-signature">&lt;static> </span>$regex<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Performs a regular expression test againts the field
+    <code>{field: {$regex: re, $options: reOptions}}</code></p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 552
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {"name.first" : {$regex : "m*", $options : "i"}} );</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="$size"><span class="type-signature">&lt;static> </span>$size<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Compares the size of the field/array to the query. This can be used on arrays, strings and objects (where it will count keys)
+    <code>{'field|array</code>: {$size: value}}`</p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="probe.js.html">node_modules/ink-probe/probe.js</a>, line 539
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>    var probe = require("ink-probe");
+    probe.find( data, {attr : {$size : 3}} );</code></pre>
+
+    
+</dd>
+
+        </dl>
+    
+    
+    
+    
+    
+    
+    
+</article>
+
+</section>  
+
+
+
+
+			</div>
+		</div>
+        <div class="span4">
+			<nav>
+			    <div class='well'><span class="lead"><a href="index.html">Index</a></span><div class='tabbable tabs-left'><ul class='nav nav-tabs'><li><a href='#nav-modules' data-toggle='tab'>Modules</a></li><li><a href='#nav-classes'  data-toggle='tab'>Classes</a></li><li><a href='#nav-namespaces'  data-toggle='tab'>Namespaces</a></li></ul><div class='tab-content'><div id='nav-modules' class='tab-pane'><ul class='nav nav-list'><li><a href="collector.html">ink/collector</a></li><li><a href="probe.html">ink/probe</a></li></ul></div><div id='nav-classes' class='tab-pane'><ul class='nav nav-list'><li><a href="collector-ACollector.html">ACollector</a></li><li><a href="collector-CollectorBase.html">CollectorBase</a></li><li><a href="collector-OCollector.html">OCollector</a></li></ul></div><div id='nav-namespaces' class='tab-pane'><ul class='nav nav-list'><li><a href="probe.queryOperators.html">queryOperators</a></li><li><a href="probe.updateOperators.html">updateOperators</a></li></ul></div></div></div></div>
+			</nav>
+		</div>
+	</div>
+</div>
+<br clear="both">
+
+<footer>
+	<small>Copyright &copy; 2013 Terry Weiss. All rights reserved.</small>
+
+</footer>
+
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <script src="scripts/jquery.min.js"> </script>
+    <script src="scripts/bootstrap-tab.js"> </script>
+    <script src="scripts/URI.js"> </script>
+
+    <script>
+        prettyPrint();
+    </script>
+    <script>
+    $(document).ready(function(){
+         var uri = URI(window.location.href);
+         var filename = uri.filename();
+         var link = $(".nav li>a[href='" + filename + "']");
+
+         if (link.length > 0){
+           link.parents("li:first").addClass("active");
+           var paneid = link.parents(".tab-pane").addClass("active").attr("id");
+
+           $(".nav-tabs li>a[href='#"+paneid+"']").parents("li:first").addClass("active");
+         }
+    });
+    </script>
+
+</body>
+</html>
