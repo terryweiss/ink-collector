@@ -6,8 +6,8 @@ var jsdocPublicApi = {
 	src       : ["./collector.js", "README.md"],
 	dest      : "./dox",
 	tutorials : "./",
-	template  : "./etc/doc-template",
-	config    : "./etc/doc-template/jsdoc.conf.json",
+	template  : "../docstrap/template",
+	config    : "./etc/jsdoc.conf.json",
 	options   : "--recurse --lenient --verbose"
 };
 
@@ -37,13 +37,13 @@ var tasks = {
 			command : jsdocCommand( jsdocPublicApi )
 		},
 		browserify : {
-			command : "browserify probe.js probe.browser.js> dist/ink.probe.js"
+			command : "browserify collector.js collector.browser.js> dist/ink.collector.js"
 		}
 	},
 	coffee : {
 		compile : {
 			files : {
-				'./probe.js'  : './probe.coffee'
+				'./collector.js'  : './collector.coffee'
 			}
 		}
 	},
@@ -65,15 +65,15 @@ var tasks = {
 		},
 		strings : {
 			files : {
-				'dist/ink.probe.min.js' : ['dist/ink.probe.js' ]
+				'dist/ink.collector.min.js' : ['dist/ink.collector.js' ]
 			}
 		}
 	},
 	copy   : {
 		docs : {
 			files : [
-				{expand : true, cwd : "dox/", src : ['**'], dest : '../probe-dox/'},
-				{src : ['etc/splat.png'], dest : '../probe-dox/etc/splat.png'} // includes files in path and its subdirs
+				{expand : true, cwd : "dox/", src : ['**'], dest : '../collector-dox/'},
+				{src : ['etc/splat.png'], dest : '../collector-dox/etc/splat.png'} // includes files in path and its subdirs
 
 			]
 		}
