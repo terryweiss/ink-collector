@@ -53,12 +53,12 @@ It also supports a number of useful methods from the underscore/lodash world:
         return row.work.city;
     } );
 
-	// count by? you betcha    
+	// count by? you betcha
     var countBy = people.countBy( {"work.company" : "ABC"}, function ( row ) {
         return row.work.city;
     } );
 
-And all the goodness you would expect like `max`, `min`, `map`, `reduce` and others. See the documentation for full juicy details.
+And all the goodness you would expect like `max`, `min`, `map`, `reduce` and others. See the [documentation for full juicy details.](http://terryweiss.github.io/ink-collector/collector.html)
 
 ## Usage ##
 From node:
