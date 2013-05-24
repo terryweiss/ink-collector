@@ -44,8 +44,8 @@ It also supports a number of useful methods from the underscore/lodash world:
 	});
 
 	// OK, nice. But what if I only want to iterate the Swansons of the world?
-	people.each(function(row, key)){
-        console.info({"name.last": "swanson"}, row.name.first);
+	people.each({"name.last": "swanson"}, function(row, key)){
+        console.info( row.name.first );
     });
 
 	// group only the members of company ABC by city
@@ -53,13 +53,12 @@ It also supports a number of useful methods from the underscore/lodash world:
         return row.work.city;
     } );
 
-	// count by? you betcha
-    // group only the members of company ABC by city
+	// count by? you betcha    
     var countBy = people.countBy( {"work.company" : "ABC"}, function ( row ) {
         return row.work.city;
     } );
 
-And a all the goodness you would expect like `max`, `min`, `map`, `reduce` and others. See the documentation for full juicy details.
+And all the goodness you would expect like `max`, `min`, `map`, `reduce` and others. See the documentation for full juicy details.
 
 ## Usage ##
 From node:
@@ -104,7 +103,7 @@ Also see
 
 + [ink-probe](https://github.com/terryweiss/ink-probe)
 + [ink-strings](https://github.com/terryweiss/ink-strings)
-+ ink-collector (https://github.com/terryweiss/ink-collector)
++ [ink-collector] (https://github.com/terryweiss/ink-collector)
 + ink-scene (coming soon)
 + ink-dox (coming, but a long way off yet)
 
