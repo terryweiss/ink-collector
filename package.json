@@ -1,6 +1,6 @@
 {
   "name": "ink-collector",
-  "version": "0.1.0-1",
+  "version": "0.1.0-2",
   "description": "*ink-probe* allows you to interrogate your objects and arrays",
   "devDependencies": {
     "jsdoc": "git://github.com/jsdoc3/jsdoc.git",
