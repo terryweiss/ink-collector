@@ -4,5 +4,6 @@ components*
 .idea*
 ringojs-0.9*
 dox*
+npm-debug.log
 
 
