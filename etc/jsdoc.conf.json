@@ -9,9 +9,9 @@
 		"default"         : {
 			"outputSourceFiles" : true
 		},
-		"systemName"      : "ink-colector",
+		"systemName"      : "ink-collector",
 		"footer"          : "",
-		"copyright"       : "ink-colector Copyright © 2012-2013 Terry Weiss. All rights reserved.",
+		"copyright"       : "ink-collector Copyright © 2012-2013 Terry Weiss. All rights reserved.",
 		"navType"         : "vertical",
 		"theme"           : "spacelab",
 		"linenums"        : true,
