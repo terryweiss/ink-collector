@@ -4,17 +4,17 @@
   "description": "*ink-probe* allows you to interrogate your objects and arrays",
   "devDependencies": {
     "jsdoc": "git://github.com/jsdoc3/jsdoc.git",
-    "grunt": "~0.4.1",
-    "grunt-shell": "~0.2.2",
-    "grunt-contrib-copy": "~0.4.1",
-    "grunt-contrib-uglify": "~0.2.0",
-    "grunt-contrib-jshint": "~0.4.3",
-    "grunt-contrib-coffee": "~0.7.0",
+    "grunt": "<=0.5.0",
+    "grunt-shell": "<=0.9.0",
+    "grunt-contrib-copy": "<=0.5.0",
+    "grunt-contrib-uglify": "<=0.5.0",
+    "grunt-contrib-jshint": "<=0.5.0",
     "async": "~0.2.8"
   },
   "dependencies": {
-    "lodash": "~1.2.1",
-    "ink-probe": "~0.1.0"
+    "lodash": "<=2.5.0",
+    "ink-probe": "*",
+    "dcl": "~1.1.1"
   },
   "license": "MIT",
   "main": "./probe.js",

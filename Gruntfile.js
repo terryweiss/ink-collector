@@ -87,7 +87,7 @@ module.exports = function ( grunt ) {
 
 	grunt.loadNpmTasks( "grunt-shell" );
 	grunt.loadNpmTasks( 'grunt-contrib-jshint' );
-	grunt.loadNpmTasks( 'grunt-contrib-coffee' );
+
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
 
@@ -95,7 +95,7 @@ module.exports = function ( grunt ) {
 	grunt.registerTask( "lint", ["jshint"] );
 	grunt.registerTask( "brow", ["shell:browserify"] );
 
-	grunt.registerTask( "build", ["coffee", /*"lint",*/ "brow", "uglify"] );
+	grunt.registerTask( "build", [ "lint", "brow", "uglify"] );
 	grunt.registerTask( "all", ["build", "dox"] );
 
 };
