@@ -376,3 +376,122 @@ exports.array = function ( obj ) {
 exports.object = function ( obj ) {
 	return new OCollector( obj );
 };
+
+/**
+ Returns true if all items match the query. Aliases as `all`
+ @function
+
+ @param {object} qu The query to execute
+ @returns {boolean}
+ @name every
+ @memberOf module:ink/collector~CollectorBase#
+ */
+
+
+/**
+ Returns true if any of the items match the query. Aliases as `any`
+ @function
+
+ @param {object} qu The query to execute
+ @returns {boolean}
+ @memberOf module:ink/collector~CollectorBase#
+ @name some
+ */
+
+
+/**
+ Returns the set of unique records that match a query
+
+ @param {object} qu The query to execute.
+ @return {array}
+ @memberOf module:ink/collector~CollectorBase#
+ @name unique
+ @method
+ **/
+
+/**
+ Returns true if all items match the query. Aliases as `every`
+ @function
+
+ @param {object} qu The query to execute
+ @returns {boolean}
+ @name all
+ @memberOf module:ink/collector~CollectorBase#
+ */
+
+
+/**
+ Returns true if any of the items match the query. Aliases as `all`
+ @function
+
+ @param {object} qu The query to execute
+ @returns {boolean}
+ @memberOf module:ink/collector~CollectorBase#
+ @name any
+ */
+
+
+/**
+ Remove all items in the object/array that match the query
+
+ @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
+ @return {object|array} The array or object as appropriate without the records.
+ @memberOf module:ink/collector~CollectorBase#
+ @name remove
+ @method
+ **/
+
+/**
+ Returns the first record that matches the query and returns its key or index depending on whether `obj` is an object or array respectively.
+ Aliased as `seekKey`.
+
+ @param {object} qu The query to execute.
+ @returns {object}
+ @memberOf module:ink/collector~CollectorBase#
+ @name findOneKey
+ @method
+ */
+
+
+/**
+ Returns the first record that matches the query. Aliased as `seek`.
+
+ @param {object} qu The query to execute.
+ @returns {object}
+ @memberOf module:ink/collector~CollectorBase#
+ @name findOne
+ @method
+ */
+
+
+/**
+ Find all records that match a query and returns the keys for those items. This is similar to {@link module:ink/probe.find} but instead of returning
+ records, returns the keys. If `obj` is an object it will return the hash key. If 'obj' is an array, it will return the index
+
+ @param {object} qu The query to execute.
+ @returns {array}
+ @memberOf module:ink/collector~CollectorBase#
+ @name findKeys
+ @method
+ */
+
+
+/**
+ Find all records that match a query
+
+ @param {object} qu The query to execute.
+ @returns {array} The results
+ @memberOf module:ink/collector~CollectorBase#
+ @name find
+ @method
+ **/
+
+/**
+ Updates all records in obj that match the query. See {@link module:ink/probe.updateOperators} for the operators that are supported.
+
+ @param {object} qu The query which will be used to identify the records to updated
+ @param {object} setDocument The update operator. See {@link module:ink/probe.updateOperators}
+ @memberOf module:ink/collector~CollectorBase#
+ @name update
+ @method
+ */
