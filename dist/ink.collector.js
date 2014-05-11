@@ -6779,6 +6779,22 @@
 },{}],3:[function(require,module,exports){
 (function(factory){
 	if(typeof define != "undefined"){
+		define(["../dcl"], factory);
+	}else if(typeof module != "undefined"){
+		module.exports = factory(require("../dcl"));
+	}else{
+		dclMixinsDestroyable = factory(dcl);
+	}
+})(function(dcl){
+	"use strict";
+	var Destroyable = dcl(null, {declaredClass: "dcl/mixins/Destroyable"});
+	dcl.chainBefore(Destroyable, "destroy");
+	return Destroyable;
+});
+
+},{"../dcl":4}],4:[function(require,module,exports){
+(function(factory){
+	if(typeof define != "undefined"){
 		define(["./mini"], factory);
 	}else if(typeof module != "undefined"){
 		module.exports = factory(require("./mini"));
@@ -6876,23 +6892,7 @@
 	return dcl;
 });
 
-},{"./mini":4}],5:[function(require,module,exports){
-(function(factory){
-	if(typeof define != "undefined"){
-		define(["../dcl"], factory);
-	}else if(typeof module != "undefined"){
-		module.exports = factory(require("../dcl"));
-	}else{
-		dclMixinsDestroyable = factory(dcl);
-	}
-})(function(dcl){
-	"use strict";
-	var Destroyable = dcl(null, {declaredClass: "dcl/mixins/Destroyable"});
-	dcl.chainBefore(Destroyable, "destroy");
-	return Destroyable;
-});
-
-},{"../dcl":3}],6:[function(require,module,exports){
+},{"./mini":5}],6:[function(require,module,exports){
 "use strict";
 /**
  @fileOverview An object and array collector
@@ -7272,7 +7272,126 @@ exports.object = function ( obj ) {
 	return new OCollector( obj );
 };
 
-},{"dcl/mixins/Destroyable":5,"dcl":3,"lodash":2,"ink-probe":7}],4:[function(require,module,exports){
+/**
+ Returns true if all items match the query. Aliases as `all`
+ @function
+
+ @param {object} qu The query to execute
+ @returns {boolean}
+ @name every
+ @memberOf module:ink/collector~CollectorBase#
+ */
+
+
+/**
+ Returns true if any of the items match the query. Aliases as `any`
+ @function
+
+ @param {object} qu The query to execute
+ @returns {boolean}
+ @memberOf module:ink/collector~CollectorBase#
+ @name some
+ */
+
+
+/**
+ Returns the set of unique records that match a query
+
+ @param {object} qu The query to execute.
+ @return {array}
+ @memberOf module:ink/collector~CollectorBase#
+ @name unique
+ @method
+ **/
+
+/**
+ Returns true if all items match the query. Aliases as `every`
+ @function
+
+ @param {object} qu The query to execute
+ @returns {boolean}
+ @name all
+ @memberOf module:ink/collector~CollectorBase#
+ */
+
+
+/**
+ Returns true if any of the items match the query. Aliases as `all`
+ @function
+
+ @param {object} qu The query to execute
+ @returns {boolean}
+ @memberOf module:ink/collector~CollectorBase#
+ @name any
+ */
+
+
+/**
+ Remove all items in the object/array that match the query
+
+ @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
+ @return {object|array} The array or object as appropriate without the records.
+ @memberOf module:ink/collector~CollectorBase#
+ @name remove
+ @method
+ **/
+
+/**
+ Returns the first record that matches the query and returns its key or index depending on whether `obj` is an object or array respectively.
+ Aliased as `seekKey`.
+
+ @param {object} qu The query to execute.
+ @returns {object}
+ @memberOf module:ink/collector~CollectorBase#
+ @name findOneKey
+ @method
+ */
+
+
+/**
+ Returns the first record that matches the query. Aliased as `seek`.
+
+ @param {object} qu The query to execute.
+ @returns {object}
+ @memberOf module:ink/collector~CollectorBase#
+ @name findOne
+ @method
+ */
+
+
+/**
+ Find all records that match a query and returns the keys for those items. This is similar to {@link module:ink/probe.find} but instead of returning
+ records, returns the keys. If `obj` is an object it will return the hash key. If 'obj' is an array, it will return the index
+
+ @param {object} qu The query to execute.
+ @returns {array}
+ @memberOf module:ink/collector~CollectorBase#
+ @name findKeys
+ @method
+ */
+
+
+/**
+ Find all records that match a query
+
+ @param {object} qu The query to execute.
+ @returns {array} The results
+ @memberOf module:ink/collector~CollectorBase#
+ @name find
+ @method
+ **/
+
+/**
+ Updates all records in obj that match the query. See {@link module:ink/probe.updateOperators} for the operators that are supported.
+
+ @param {object} qu The query which will be used to identify the records to updated
+ @param {object} setDocument The update operator. See {@link module:ink/probe.updateOperators}
+ @memberOf module:ink/collector~CollectorBase#
+ @name update
+ @method
+ */
+
+},{"dcl/mixins/Destroyable":3,"lodash":2,"dcl":4,"ink-probe":7}],5:[function(require,module,exports){
 (function(){(function(factory){
 	if(typeof define != "undefined"){
 		define([], factory);
@@ -7501,1001 +7620,1019 @@ exports.object = function ( obj ) {
 });
 
 })()
-},{}],7:[function(require,module,exports){
-(function(){"use strict";
-/**
- @fileOverview Queries objects in memory using a mongo-like notation for reaching into objects and filtering for records
+},{}],8:[function(require,module,exports){
+// shim for using process in browser
 
- @module ink/probe
- @author Terry Weiss
- @license MIT
- */
+var process = module.exports = {};
 
-var sys = require( "lodash" );
+process.nextTick = (function () {
+    var canSetImmediate = typeof window !== 'undefined'
+    && window.setImmediate;
+    var canPost = typeof window !== 'undefined'
+    && window.postMessage && window.addEventListener
+    ;
 
-/**
- The list of operators that are nested within the expression object. These take the form <code>{path:{operator:operand}}</code>
- @private
- **/
-var nestedOps = ["$eq", "$gt", "$gte", "$in", "$lt", "$lte", "$ne", "$nin", "$exists", "$mod", "$size", "$all"];
+    if (canSetImmediate) {
+        return function (f) { return window.setImmediate(f) };
+    }
 
-/**
- The list of operators that prefix the expression object. These take the form <code>{operator:{operands}}</code> or <code>{operator: [operands]}</code>
- @private
- **/
-var prefixOps = ["$and", "$or", "$nor", "$not"];
+    if (canPost) {
+        var queue = [];
+        window.addEventListener('message', function (ev) {
+            if (ev.source === window && ev.data === 'process-tick') {
+                ev.stopPropagation();
+                if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                }
+            }
+        }, true);
 
-/**
- Processes a nested operator by picking the operator out of the expression object. Returns a formatted object that can be used for querying
- @private
- @param {string} path The path to element to work with
- @param {object} operand The operands to use for the query
- @return {object} A formatted operation definition
- **/
-function processNestedOperator( path, operand ) {
-	var opKeys = Object.keys( operand );
-	return {
-		operation : opKeys[ 0 ],
-		operands  : [operand[ opKeys[ 0 ] ]],
-		path      : path
-	};
+        return function nextTick(fn) {
+            queue.push(fn);
+            window.postMessage('process-tick', '*');
+        };
+    }
+
+    return function nextTick(fn) {
+        setTimeout(fn, 0);
+    };
+})();
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
 }
 
-/**
- Interogates a single query expression object and calls the appropriate handler for its contents
- @private
- @param {object} val The expression
- @param {object} key The prefix
- @returns {object} A formatted operation definition
- **/
-function processExpressionObject( val, key ) {
-	var operator;
-	if ( sys.isObject( val ) ) {
-		var opKeys = Object.keys( val );
-		var op = opKeys[ 0 ];
-
-		if ( sys.indexOf( nestedOps, op ) > -1 ) {
-			operator = processNestedOperator( key, val );
-		} else if ( sys.indexOf( prefixOps, key ) > -1 ) {
-			operator = processPrefixOperator( key, val );
-		} else if ( op === "$regex" ) {
-			// special handling for regex options
-			operator = processNestedOperator( key, val );
-		} else if ( op === "$elemMatch" ) {
-			// elemMatch is just a weird duck
-			operator = {
-				path      : key,
-				operation : op,
-				operands  : []
-			};
-			sys.each( val[ op ], function ( entry ) {
-				operator.operands = parseQueryExpression( entry );
-			} );
-		}
-		else {
-			throw new Error( "Unrecognized operator" );
-		}
-	} else {
-		operator = processNestedOperator( key, { $eq : val } );
-	}
-	return operator;
-}
-
-/**
- Processes a prefixed operator and then passes control to the nested operator method to pick out the contained values
- @private
- @param {string} operation The operation prefix
- @param {object} operand The operands to use for the query
- @return {object} A formatted operation definition
- **/
-function processPrefixOperator( operation, operand ) {
-	var component = {
-		operation : operation,
-		path      : null,
-		operands  : []
-	};
-
-	if ( sys.isArray( operand ) ) {
-		//if it is an array we need to loop through the array and parse each operand
-		sys.each( operand, function ( obj ) {
-			sys.each( obj, function ( val, key ) {
-				component.operands.push( processExpressionObject( val, key ) );
-			} );
-		} );
-	} else {
-		//otherwise it is an object and we can parse it directly
-		sys.each( operand, function ( val, key ) {
-			component.operands.push( processExpressionObject( val, key ) );
-		} );
-	}
-	return component;
-
-}
-
-/**
- Parses a query request and builds an object that can used to process a query target
- @private
- @param {object} obj The expression object
- @returns {object} All components of the expression in a kind of execution tree
- **/
-
-function parseQueryExpression( obj ) {
-	if ( sys.size( obj ) > 1 ) {
-		var arr = sys.map( obj, function ( v, k ) {
-			var entry = {};
-			entry[k] = v;
-			return entry;
-		} );
-		obj = {
-			$and : arr
-		};
-	}
-	var payload = [];
-	sys.each( obj, function ( val, key ) {
-
-		var exprObj = processExpressionObject( val, key );
-
-		if ( exprObj.operation === "$regex" ) {
-			exprObj.options = val.$options;
-		}
-
-		payload.push( exprObj );
-	} );
-
-	return payload;
-}
-
-/**
- The delimiter to use when splitting an expression
- @type {string}
- @default '.'
- **/
-
-exports.delimiter = '.';
-
-/**
- Splits a path expression into its component parts
- @private
- @param {string} path The path to split
- @returns {array}
- **/
-
-function splitPath( path ) {
-	return path.split( exports.delimiter );
-}
-
-/**
- Reaches into an object and allows you to get at a value deeply nested in an object
- @private
- @param {array} path The split path of the element to work with
- @param {object} record The record to reach into
- @return {*} Whatever was found in the record
- **/
-function reachin( path, record ) {
-	var context = record;
-	var part;
-	var _i;
-	var _len;
-
-	for ( _i = 0, _len = path.length; _i < _len; _i++ ) {
-		part = path[_i];
-		context = context[part];
-		if ( sys.isNull( context ) || sys.isUndefined( context ) ) {
-			break;
-		}
-	}
-
-	return context;
-}
-
-/**
- This will write the value into a record at the path, creating intervening objects if they don't exist
- @private
- @param {array} path The split path of the element to work with
- @param {object} record The record to reach into
- @param {string} setter The set command, defaults to $set
- @param {object} newValue The value to write to the, or if the operator is $pull, the query of items to look for
- */
-function pushin( path, record, setter, newValue ) {
-	var context = record;
-	var parent = record;
-	var lastPart = null;
-	var _i;
-	var _len;
-	var part;
-	var keys;
-
-	for ( _i = 0, _len = path.length; _i < _len; _i++ ) {
-		part = path[_i];
-		lastPart = part;
-		parent = context;
-		context = context[part];
-		if ( sys.isNull( context ) || sys.isUndefined( context ) ) {
-			parent[part] = {};
-			context = parent[part];
-		}
-	}
-
-	if ( sys.isEmpty( setter ) || setter === '$set' ) {
-		parent[lastPart] = newValue;
-		return parent[lastPart];
-	} else {
-		switch ( setter ) {
-			case '$inc':
-				/**
-				 * Increments a field by the amount you specify. It takes the form
-				 * `{ $inc: { field1: amount } }`
-				 * @name $inc
-				 * @memberOf module:ink/probe.updateOperators
-				 * @example
-				 * var probe = require("ink-probe");
-				 * probe.update( obj, {'name.last' : 'Owen', 'name.first' : 'LeRoy'},
-				 * {$inc : {'password.changes' : 2}} );
-				 */
-
-				if ( !sys.isNumber( newValue ) ) {
-					newValue = 1;
-				}
-				if ( sys.isNumber( parent[lastPart] ) ) {
-					parent[lastPart] = parent[lastPart] + newValue;
-					return parent[lastPart];
-				}
-				break;
-			case '$dec':
-				/**
-				 * Decrements a field by the amount you specify. It takes the form
-				 * `{ $dec: { field1: amount }`
-                 * @name $dec
-				 * @memberOf module:ink/probe.updateOperators
-				 * @example
-				 *  var probe = require("ink-probe");
-				 * probe.update( obj, {'name.last' : 'Owen', 'name.first' : 'LeRoy'},
-				 * {$dec : {'password.changes' : 2}} );
-				 */
-
-				if ( !sys.isNumber( newValue ) ) {
-					newValue = 1;
-				}
-				if ( sys.isNumber( parent[lastPart] ) ) {
-					parent[lastPart] = parent[lastPart] - newValue;
-					return parent[lastPart];
-				}
-				break;
-			case '$unset':
-				/**
-				 * Removes the field from the object. It takes the form
-				 * `{ $unset: { field1: "" } }`
-				 * @name $unset
-				 * @memberOf module:ink/probe.updateOperators
-				 * @example
-				 * var probe = require("ink-probe");
-				 * probe.update( data, {'name.first' : 'Yogi'}, {$unset : {'name.first' : ''}} );
-				 */
-
-				return delete parent[lastPart];
-			case '$pop':
-				/**
-				 * The $pop operator removes the first or last element of an array. Pass $pop a value of 1 to remove the last element
-				 * in an array and a value of -1 to remove the first element of an array. This will only work on arrays. Syntax:
-				 * `{ $pop: { field: 1 } }` or `{ $pop: { field: -1 } }`
-				 * @name $pop
-				 * @memberOf module:ink/probe.updateOperators
-				 * @example
-				 * var probe = require("ink-probe");
-				 * // attr is the name of the array field
-				 * probe.update( data, {_id : '511d18827da2b88b09000133'}, {$pop : {attr : 1}} );
-				 */
-
-				if ( sys.isArray( parent[lastPart] ) ) {
-					if ( !sys.isNumber( newValue ) ) {
-						newValue = 1;
-					}
-					if ( newValue === 1 ) {
-						return parent[lastPart].pop();
-					} else {
-						return parent[lastPart].shift();
-					}
-				}
-				break;
-			case '$push':
-				/**
-				 * The $push operator appends a specified value to an array. It looks like this:
-				 * `{ $push: { <field>: <value> } }`
-				 * @name $push
-				 * @memberOf module:ink/probe.updateOperators
-				 * @example
-				 * var probe = require("ink-probe");
-				 * // attr is the name of the array field
-				 * probe.update( data, {_id : '511d18827da2b88b09000133'},
-				 * {$push : {attr : {"hand" : "new", "color" : "new"}}} );
-				 */
-
-				if ( sys.isArray( parent[lastPart] ) ) {
-					return parent[lastPart].push( newValue );
-				}
-				break;
-			case '$pull':
-				/**
-				 * The $pull operator removes all instances of a value from an existing array. It looks like this:
-				 * `{ $pull: { field: <query> } }`
-				 * @name $pull
-				 * @memberOf module:ink/probe.updateOperators
-				 * @example
-				 * var probe = require("ink-probe");
-				 * // attr is the name of the array field
-				 * probe.update( data, {'email' : 'EWallace.43@fauxprisons.com'},
-				 * {$pull : {attr : {"color" : "green"}}} );
-				 */
-
-				if ( sys.isArray( parent[lastPart] ) ) {
-					keys = exports.findKeys( parent[lastPart], newValue );
-					sys.each( keys, function ( val, index ) {
-						return delete parent[lastPart][index];
-					} );
-					parent[lastPart] = sys.compact( parent[lastPart] );
-					return parent[lastPart];
-				}
-		}
-	}
-}
-
-/**
- The query operations that evaluate directly from an operation
- @private
- **/
-var operations = {
-	/**
-	 * `$eq` performs a `===` comparison by comparing the value directly if it is an atomic value.
-	 * otherwise if it is an array, it checks to see if the value looked for is in the array.
-	 * `{field: value}` or `{field: {$eq : value}}` or `{array: value}` or `{array: {$eq : value}}`
-	 * @name $eq
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {categories : "cat1"} );
-	 * // is the same as
-	 * probe.find( data, {categories : {$eq: "cat1"}} );
-	 */
-
-	$eq        : function ( qu, value ) {
-		if ( sys.isArray( value ) ) {
-			return sys.find( value, function ( entry ) {
-				return JSON.stringify( qu.operands[0] ) === JSON.stringify( entry );
-			} ) !== void 0;
-		} else {
-			return JSON.stringify( qu.operands[0] ) === JSON.stringify( value );
-		}
-	},
-	/**
-	 *  `$ne` performs a `!==` comparison by comparing the value directly if it is an atomic value. Otherwise, if it is an array
-	 * this is performs a "not in array".
-	 * '{field: {$ne : value}}` or '{array: {$ne : value}}`
-	 * @name $ne
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {"name.first" : {$ne : "Sheryl"}} );
-	 */
-
-	$ne        : function ( qu, value ) {
-		if ( sys.isArray( value ) ) {
-			return sys.find( value, function ( entry ) {
-				return JSON.stringify( qu.operands[0] ) !== JSON.stringify( entry );
-			} ) !== void 0;
-		} else {
-			return JSON.stringify( qu.operands[0] ) !== JSON.stringify( value );
-		}
-	},
-	/**
-	 * `$all` checks to see if all of the members of the query are included in an array
-	 * `{array: {$all: [val1, val2, val3]}}`
-	 * @name $all
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {"categories" : {$all : ["cat4", "cat2", "cat1"]}} );
-	 */
-
-	$all       : function ( qu, value ) {
-		var operands, result;
-
-		result = false;
-		if ( sys.isArray( value ) ) {
-			operands = sys.flatten( qu.operands );
-			result = sys.intersection( operands, value ).length === operands.length;
-		}
-		return result;
-	},
-	/**
-	 * `$gt` Sees if a field is greater than the value
-	 * `{field: {$gt: value}}`
-	 * @name $gt
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {"age" : {$gt : 24}} );
-	 */
-
-	$gt        : function ( qu, value ) {
-		return qu.operands[0] < value;
-	},
-	/**
-	 * `$gte` Sees if a field is greater than or equal to the value
-	 * `{field: {$gte: value}}`
-	 * @name $gte
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {"age" : {$gte : 50}} );
-	 */
-
-	$gte       : function ( qu, value ) {
-		return qu.operands[0] <= value;
-	},
-	/**
-	 * `$lt` Sees if a field is less than the value
-	 * `{field: {$lt: value}}`
-	 * @name $lt
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {"age" : {$lt : 24}} );
-	 */
-
-	$lt        : function ( qu, value ) {
-		return qu.operands[0] > value;
-	},
-	/**
-	 * `$lte` Sees if a field is less than or equal to the value
-	 * `{field: {$lte: value}}`
-	 * @name $lte
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {"age" : {$lte : 50}} );
-	 */
-
-	$lte       : function ( qu, value ) {
-		return qu.operands[0] >= value;
-	},
-	/**
-	 * `$in` Sees if a field has one of the values in the query
-	 * `{field: {$in: [test1, test2, test3,...]}}`
-	 * @name $in
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {"age" : {$in : [24, 28, 60]}} );
-	 */
-
-	$in        : function ( qu, value ) {
-		var operands;
-
-		operands = sys.flatten( qu.operands );
-		return sys.indexOf( operands, value ) > -1;
-	},
-	/**
-	 * `$nin` Sees if a field has none of the values in the query
-	 * `{field: {$nin: [test1, test2, test3,...]}}`
-	 * @name $nin
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {"age" : {$nin : [24, 28, 60]}} );
-	 */
-
-	$nin       : function ( qu, value ) {
-		var operands;
-
-		operands = sys.flatten( qu.operands );
-		return sys.indexOf( operands, value ) === -1;
-	},
-	/**
-	 * `$exists` Sees if a field exists.
-	 * `{field: {$exists: true|false}}`
-	 * @name $exists
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {"name.middle" : {$exists : true}} );
-	 */
-
-	$exists    : function ( qu, value ) {
-		return (sys.isNull( value ) || sys.isUndefined( value )) !== qu.operands[0];
-	},
-	/**
-	 * Checks equality to a modulus operation on a field
-	 * `{field: {$mod: [divisor, remainder]}}`
-	 * @name $mod
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {"age" : {$mod : [2, 0]}} );
-	 */
-
-	$mod       : function ( qu, value ) {
-		var operands = sys.flatten( qu.operands );
-		if ( operands.length !== 2 ) {
-			throw new Error( "$mod requires two operands" );
-		}
-		var mod = operands[0];
-		var rem = operands[1];
-		return value % mod === rem;
-	},
-	/**
-	 * Compares the size of the field/array to the query. This can be used on arrays, strings and objects (where it will count keys)
-	 * `{'field|array`: {$size: value}}`
-	 * @name $size
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {attr : {$size : 3}} );
-	 */
-
-	$size      : function ( qu, value ) {
-		return sys.size( value ) === qu.operands[0];
-	},
-	/**
-	 * Performs a regular expression test againts the field
-	 * `{field: {$regex: re, $options: reOptions}}`
-	 * @name $regex
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {"name.first" : {$regex : "m*", $options : "i"}} );
-	 */
-
-	$regex     : function ( qu, value ) {
-		var r = new RegExp( qu.operands[0], qu.options );
-		return r.test( value );
-	},
-	/**
-	 * This is like $all except that it works with an array of objects or value. It checks to see the array matches all
-	 * of the conditions of the query
-	 * `{array: {$elemMatch: {path: value, path: {$operation: value2}}}`
-     * @name $elemMatch
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {attr : {$elemMatch : [
-     *  {color : "red", "hand" : "left"}
-     * ]}} );
-	 */
-	$elemMatch : function ( qu, value ) {
-		var expression, test, _i, _len;
-
-		if ( sys.isArray( value ) ) {
-			var _ref = qu.operands;
-			for ( _i = 0, _len = _ref.length; _i < _len; _i++ ) {
-				expression = _ref[_i];
-				if ( expression.path ) {
-					expression.splitPath = splitPath( expression.path );
-				}
-			}
-			test = execQuery( value, qu.operands, null, true ).arrayResults;
-		}
-		return test.length > 0;
-	},
-	/**
-	 * Returns true if all of the conditions of the query are met
-	 * `{$and: [query1, query2, query3]}`
-	 * @name $and
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {$and : [
-     *      {"name.first" : "Mildred"},
-     *      {"name.last" : "Graves"}
-     * ]} );
-	 */
-
-	$and       : function ( qu, value, record ) {
-		var isAnd = false;
-
-		sys.each( qu.operands, function ( expr ) {
-			if ( expr.path ) {
-				expr.splitPath = expr.splitPath || splitPath( expr.path );
-			}
-			var test = reachin( expr.splitPath, record, expr.operation );
-			isAnd = operations[expr.operation]( expr, test, record );
-			if ( !isAnd ) {
-				return false;
-			}
-		} );
-
-		return isAnd;
-	},
-	/**
-	 * Returns true if any of the conditions of the query are met
-	 * `{$or: [query1, query2, query3]}`
-	 * @name $or
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {$or : [
-     *      "age" : {$in : [24, 28, 60]}},
-	 *      {categories : "cat1"}
-	 * ]} );
-	 */
-	$or        : function ( qu, value, record ) {
-		var isOr = false;
-		sys.each( qu.operands, function ( expr ) {
-			if ( expr.path ) {
-				expr.splitPath = expr.splitPath || splitPath( expr.path );
-			}
-			var test = reachin( expr.splitPath, record, expr.operation );
-			isOr = operations[expr.operation]( expr, test, record );
-			if ( isOr ) {
-				return false;
-			}
-		} );
-
-		return isOr;
-	},
-	/**
-	 * Returns true if none of the conditions of the query are met
-	 * `{$nor: [query1, query2, query3]}`
-	 * @name $nor
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {$nor : [
-     *      {"age" : {$in : [24, 28, 60]}},
-     *      {categories : "cat1"}
-     * ]} );
-	 */
-	$nor       : function ( qu, value, record ) {
-		var isOr = false;
-		sys.each( qu.operands, function ( expr ) {
-			if ( expr.path ) {
-				expr.splitPath = expr.splitPath || splitPath( expr.path );
-			}
-			var test = reachin( expr.splitPath, record, expr.operation );
-			isOr = operations[expr.operation]( expr, test, record );
-			if ( isOr ) {
-				return false;
-			}
-		} );
-
-		return !isOr;
-	},
-	/**
-	 * Logical NOT on the conditions of the query
-	 * `{$not: [query1, query2, query3]}`
-	 * @name $not
-	 * @memberOf module:ink/probe.queryOperators
-	 * @example
-	 * var probe = require("ink-probe");
-	 * probe.find( data, {$not : {"age" : {$lt : 24}}} );
-	 */
-	$not       : function ( qu, value, record ) {
-
-		var result = false;
-		sys.each( qu.operands, function ( expr ) {
-			if ( expr.path ) {
-				expr.splitPath = expr.splitPath || splitPath( expr.path );
-			}
-			var test = reachin( expr.splitPath, record, expr.operation );
-			result = operations[expr.operation]( expr, test, record );
-			if ( result ) {
-				return false;
-			}
-		} );
-
-		return !result;
-
-	}
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
 };
 
-/**
- Executes a query by traversing a document and evaluating each record
- @private
- @param {array|object} obj The object to query
- @param {object} qu The query to execute
- @param {boolean} shortCircuit When true, the condition that matches the query stops evaluation for that record, otherwise all conditions have to be met
- @param {boolean} stopOnFirst When true all evaluation stops after the first record is found to match the conditons
- **/
-function execQuery( obj, qu, shortCircuit, stopOnFirst ) {
-	var arrayResults = [];
-	var keyResults = [];
-	sys.each( obj, function ( record, key ) {
-		var expr, result, test, _i, _len;
+},{}],9:[function(require,module,exports){
+(function(process){/*global setImmediate: false, setTimeout: false, console: false */
+(function () {
 
-		for ( _i = 0, _len = qu.length; _i < _len; _i++ ) {
-			expr = qu[_i];
-			if ( expr.splitPath ) {
-				test = reachin( expr.splitPath, record, expr.operation );
-			}
-			result = operations[expr.operation]( expr, test, record );
-			if ( result ) {
-				arrayResults.push( record );
-				keyResults.push( key );
-			}
-			if ( !result && shortCircuit ) {
-				break;
-			}
-		}
-		if ( arrayResults.length > 0 && stopOnFirst ) {
-			return false;
-		}
-	} );
-	return {
-		arrayResults : arrayResults,
-		keyResults   : keyResults
-	};
-}
+    var async = {};
 
-/**
- Updates all records in obj that match the query. See {@link module:ink/probe.updateOperators} for the operators that are supported.
- @param {object|array} obj The object to update
- @param {object} qu The query which will be used to identify the records to updated
- @param {object} setDocument The update operator. See {@link module:ink/probe.updateOperators}
- */
-exports.update = function ( obj, qu, setDocument ) {
-	var records = exports.find( obj, qu );
-	return sys.each( records, function ( record ) {
-		return sys.each( setDocument, function ( fields, operator ) {
-			return sys.each( fields, function ( newValue, path ) {
-				return pushin( splitPath( path ), record, operator, newValue );
-			} );
-		} );
-	} );
-};
-/**
- Find all records that match a query
- @param {array|object} obj The object to query
- @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
- @returns {array} The results
- **/
-exports.find = function ( obj, qu ) {
-	var expression, _i, _len;
+    // global on the server, window in the browser
+    var root, previous_async;
 
-	var query = parseQueryExpression( qu );
-	for ( _i = 0, _len = query.length; _i < _len; _i++ ) {
-		expression = query[_i];
-		if ( expression.path ) {
-			expression.splitPath = splitPath( expression.path );
-		}
-	}
-	return execQuery( obj, query ).arrayResults;
-};
-/**
- Find all records that match a query and returns the keys for those items. This is similar to {@link module:ink/probe.find} but instead of returning
- records, returns the keys. If `obj` is an object it will return the hash key. If 'obj' is an array, it will return the index
- @param {array|object} obj The object to query
- @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
- @returns {array}
- */
-exports.findKeys = function ( obj, qu ) {
-	var expression, _i, _len;
+    root = this;
+    if (root != null) {
+      previous_async = root.async;
+    }
 
-	var query = parseQueryExpression( qu );
-	for ( _i = 0, _len = query.length; _i < _len; _i++ ) {
-		expression = query[_i];
-		if ( expression.path ) {
-			expression.splitPath = splitPath( expression.path );
-		}
-	}
-	return execQuery( obj, query ).keyResults;
-};
+    async.noConflict = function () {
+        root.async = previous_async;
+        return async;
+    };
 
-/**
- Returns the first record that matches the query. Aliased as `seek`.
- @param {array|object} obj The object to query
- @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
- @returns {object}
- */
-exports.findOne = function ( obj, qu ) {
-	var expression, _i, _len;
+    function only_once(fn) {
+        var called = false;
+        return function() {
+            if (called) throw new Error("Callback was already called.");
+            called = true;
+            fn.apply(root, arguments);
+        }
+    }
 
-	var query = parseQueryExpression( qu );
-	for ( _i = 0, _len = query.length; _i < _len; _i++ ) {
-		expression = query[_i];
-		if ( expression.path ) {
-			expression.splitPath = splitPath( expression.path );
-		}
-	}
-	var results = execQuery( obj, query, false, true ).arrayResults;
-	if ( results.length > 0 ) {
-		return results[0];
-	} else {
-		return null;
-	}
-};
-exports.seek = exports.findOne;
-/**
- Returns the first record that matches the query and returns its key or index depending on whether `obj` is an object or array respectively.
- Aliased as `seekKey`.
- @param {array|object} obj The object to query
- @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
- @returns {object}
- */
-exports.findOneKey = function ( obj, qu ) {
-	var expression, _i, _len;
+    //// cross-browser compatiblity functions ////
 
-	var query = parseQueryExpression( qu );
-	for ( _i = 0, _len = query.length; _i < _len; _i++ ) {
-		expression = query[_i];
-		if ( expression.path ) {
-			expression.splitPath = splitPath( expression.path );
-		}
-	}
-	var results = execQuery( obj, query, false, true ).keyResults;
-	if ( results.length > 0 ) {
-		return results[0];
-	} else {
-		return null;
-	}
-};
-exports.seekKey = exports.findOneKey;
+    var _each = function (arr, iterator) {
+        if (arr.forEach) {
+            return arr.forEach(iterator);
+        }
+        for (var i = 0; i < arr.length; i += 1) {
+            iterator(arr[i], i, arr);
+        }
+    };
 
-/**
- Remove all items in the object/array that match the query
- @param {array|object} obj The object to query
- @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
- @return {object|array} The array or object as appropriate without the records.
- **/
-exports.remove = function ( obj, qu ) {
-	var expression, _i, _len;
+    var _map = function (arr, iterator) {
+        if (arr.map) {
+            return arr.map(iterator);
+        }
+        var results = [];
+        _each(arr, function (x, i, a) {
+            results.push(iterator(x, i, a));
+        });
+        return results;
+    };
 
-	var query = parseQueryExpression( qu );
-	for ( _i = 0, _len = query.length; _i < _len; _i++ ) {
-		expression = query[_i];
-		if ( expression.path ) {
-			expression.splitPath = splitPath( expression.path );
-		}
-	}
-	var results = execQuery( obj, query, false, false ).keyResults;
-	if ( sys.isArray( obj ) ) {
-		var newArr = [];
-		sys.each( obj, function ( item, index ) {
-			if ( sys.indexOf( results, index ) === -1 ) {
-				return newArr.push( item );
-			}
-		} );
-		return newArr;
-	} else {
-		sys.each( results, function ( key ) {
-			return delete obj[key];
-		} );
-		return obj;
-	}
-};
-/**
- Returns true if all items match the query
+    var _reduce = function (arr, iterator, memo) {
+        if (arr.reduce) {
+            return arr.reduce(iterator, memo);
+        }
+        _each(arr, function (x, i, a) {
+            memo = iterator(memo, x, i, a);
+        });
+        return memo;
+    };
 
- @param {array|object} obj The object to query
- @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
- @returns {boolean}
- **/
-exports.all = function ( obj, qu ) {
-	return exports.find( obj, qu ).length === sys.size( obj );
-};
+    var _keys = function (obj) {
+        if (Object.keys) {
+            return Object.keys(obj);
+        }
+        var keys = [];
+        for (var k in obj) {
+            if (obj.hasOwnProperty(k)) {
+                keys.push(k);
+            }
+        }
+        return keys;
+    };
 
-/**
- Returns true if any of the items match the query
+    //// exported async module functions ////
 
- @param {array|object} obj The object to query
- @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
- @returns {boolean}
- **/
-exports.any = function ( obj, qu ) {
-	var expression, _i, _len;
+    //// nextTick implementation with browser-compatible fallback ////
+    if (typeof process === 'undefined' || !(process.nextTick)) {
+        if (typeof setImmediate === 'function') {
+            async.nextTick = function (fn) {
+                // not a direct alias for IE10 compatibility
+                setImmediate(fn);
+            };
+            async.setImmediate = async.nextTick;
+        }
+        else {
+            async.nextTick = function (fn) {
+                setTimeout(fn, 0);
+            };
+            async.setImmediate = async.nextTick;
+        }
+    }
+    else {
+        async.nextTick = process.nextTick;
+        if (typeof setImmediate !== 'undefined') {
+            async.setImmediate = setImmediate;
+        }
+        else {
+            async.setImmediate = async.nextTick;
+        }
+    }
 
-	var query = parseQueryExpression( qu );
-	for ( _i = 0, _len = query.length; _i < _len; _i++ ) {
-		expression = query[_i];
-		if ( expression.path ) {
-			expression.splitPath = splitPath( expression.path );
-		}
-	}
-	var results = execQuery( obj, query, true, true ).keyResults;
-	return results.length > 0;
-};
+    async.each = function (arr, iterator, callback) {
+        callback = callback || function () {};
+        if (!arr.length) {
+            return callback();
+        }
+        var completed = 0;
+        _each(arr, function (x) {
+            iterator(x, only_once(function (err) {
+                if (err) {
+                    callback(err);
+                    callback = function () {};
+                }
+                else {
+                    completed += 1;
+                    if (completed >= arr.length) {
+                        callback(null);
+                    }
+                }
+            }));
+        });
+    };
+    async.forEach = async.each;
 
-/**
- Returns the set of unique records that match a query
- @param {array|object} obj The object to query
- @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
- @return {array}
- **/
-exports.unique = function ( obj, qu ) {
-	var test = exports.find( obj, qu );
-	return sys.unique( test, function ( item ) {
-		return JSON.stringify( item );
-	} );
-};
+    async.eachSeries = function (arr, iterator, callback) {
+        callback = callback || function () {};
+        if (!arr.length) {
+            return callback();
+        }
+        var completed = 0;
+        var iterate = function () {
+            iterator(arr[completed], function (err) {
+                if (err) {
+                    callback(err);
+                    callback = function () {};
+                }
+                else {
+                    completed += 1;
+                    if (completed >= arr.length) {
+                        callback(null);
+                    }
+                    else {
+                        iterate();
+                    }
+                }
+            });
+        };
+        iterate();
+    };
+    async.forEachSeries = async.eachSeries;
 
-/**
- This will write the value into a record at the path, creating intervening objects if they don't exist. This does not work as filtered
- update and is meant to be used on a single record. It is a nice way of setting a property at an arbitrary depth at will.
+    async.eachLimit = function (arr, limit, iterator, callback) {
+        var fn = _eachLimit(limit);
+        fn.apply(null, [arr, iterator, callback]);
+    };
+    async.forEachLimit = async.eachLimit;
 
- @param {array} path The split path of the element to work with
- @param {object} record The record to reach into
- @param {string} setter The set operation.  See {@link module:ink/probe.updateOperators} for the operators you can use.
- @param {object} newValue The value to write to the, or if the operator is $pull, the query of items to look for
- */
-exports.set = function ( record, path, setter, newValue ) {
-	return pushin( splitPath( path ), record, setter, newValue );
-};
+    var _eachLimit = function (limit) {
 
-/**
- Reaches into an object and allows you to get at a value deeply nested in an object. This is not a query, but a
- straight reach in, useful for event bindings
+        return function (arr, iterator, callback) {
+            callback = callback || function () {};
+            if (!arr.length || limit <= 0) {
+                return callback();
+            }
+            var completed = 0;
+            var started = 0;
+            var running = 0;
 
- @param {array} path The split path of the element to work with
- @param {object} record The record to reach into
- @return {*} Whatever was found in the record
- **/
-exports.get = function ( record, path ) {
-	return reachin( splitPath( path ), record );
-};
+            (function replenish () {
+                if (completed >= arr.length) {
+                    return callback();
+                }
 
-/**
- Returns true if any of the items match the query. Aliases as `any`
- @function
- @param {array|object} obj The object to query
- @param {object} qu The query to execute
- @returns {boolean}
- */
-exports.some = exports.any;
+                while (running < limit && started < arr.length) {
+                    started += 1;
+                    running += 1;
+                    iterator(arr[started - 1], function (err) {
+                        if (err) {
+                            callback(err);
+                            callback = function () {};
+                        }
+                        else {
+                            completed += 1;
+                            running -= 1;
+                            if (completed >= arr.length) {
+                                callback();
+                            }
+                            else {
+                                replenish();
+                            }
+                        }
+                    });
+                }
+            })();
+        };
+    };
 
-/**
- Returns true if all items match the query. Aliases as `all`
- @function
- @param {array|object} obj The object to query
- @param {object} qu The query to execute
- @returns {boolean}
- */
-exports.every = exports.all;
 
-var bindables = {
-	any        : exports.any,
-	all        : exports.all,
-	remove     : exports.remove,
-	seekKey    : exports.seekKey,
-	seek       : exports.seek,
-	findOneKey : exports.findOneKey,
-	findOne    : exports.findOne,
-	findKeys   : exports.findKeys,
-	find       : exports.find,
-	update     : exports.update,
-	some       : exports.some,
-	every      : exports.every
-};
+    var doParallel = function (fn) {
+        return function () {
+            var args = Array.prototype.slice.call(arguments);
+            return fn.apply(null, [async.each].concat(args));
+        };
+    };
+    var doParallelLimit = function(limit, fn) {
+        return function () {
+            var args = Array.prototype.slice.call(arguments);
+            return fn.apply(null, [_eachLimit(limit)].concat(args));
+        };
+    };
+    var doSeries = function (fn) {
+        return function () {
+            var args = Array.prototype.slice.call(arguments);
+            return fn.apply(null, [async.eachSeries].concat(args));
+        };
+    };
 
-/**
- Binds the query and update methods to a specific object. When called these
- methods can skip the first parameter so that find(object, query) can just be called as find(query)
- @param {object|array} obj The object or array to bind to
- @return {object} An object with method bindings in place
- **/
-exports.bindTo = function ( obj ) {
-	var retVal;
 
-	retVal = {};
-	sys.each( bindables, function ( val, key ) {
-		retVal[key] = sys.bind( val, obj, obj );
-	} );
-	return retVal;
-};
+    var _asyncMap = function (eachfn, arr, iterator, callback) {
+        var results = [];
+        arr = _map(arr, function (x, i) {
+            return {index: i, value: x};
+        });
+        eachfn(arr, function (x, callback) {
+            iterator(x.value, function (err, v) {
+                results[x.index] = v;
+                callback(err);
+            });
+        }, function (err) {
+            callback(err, results);
+        });
+    };
+    async.map = doParallel(_asyncMap);
+    async.mapSeries = doSeries(_asyncMap);
+    async.mapLimit = function (arr, limit, iterator, callback) {
+        return _mapLimit(limit)(arr, iterator, callback);
+    };
 
-/**
- Binds the query and update methods to a specific object and adds the methods to that object. When called these
- methods can skip the first parameter so that find(object, query) can just be called as object.find(query)
- @param {object|array} obj The object or array to bind to
- @param {object|array=} collection If the collection is not the same as <code>this</code> but is a property, or even
- a whole other object, you specify that here. Otherwise the <code>obj</code> is assumed to be the same as the collecion
- **/
-exports.mixTo = function ( obj, collection ) {
-	collection = collection || obj;
-	return sys.each( bindables, function ( val, key ) {
-		obj[key] = sys.bind( val, obj, collection );
-	} );
-};
+    var _mapLimit = function(limit) {
+        return doParallelLimit(limit, _asyncMap);
+    };
 
-})()
-},{"lodash":8}],8:[function(require,module,exports){
+    // reduce only has a series version, as doing reduce in parallel won't
+    // work in many situations.
+    async.reduce = function (arr, memo, iterator, callback) {
+        async.eachSeries(arr, function (x, callback) {
+            iterator(memo, x, function (err, v) {
+                memo = v;
+                callback(err);
+            });
+        }, function (err) {
+            callback(err, memo);
+        });
+    };
+    // inject alias
+    async.inject = async.reduce;
+    // foldl alias
+    async.foldl = async.reduce;
+
+    async.reduceRight = function (arr, memo, iterator, callback) {
+        var reversed = _map(arr, function (x) {
+            return x;
+        }).reverse();
+        async.reduce(reversed, memo, iterator, callback);
+    };
+    // foldr alias
+    async.foldr = async.reduceRight;
+
+    var _filter = function (eachfn, arr, iterator, callback) {
+        var results = [];
+        arr = _map(arr, function (x, i) {
+            return {index: i, value: x};
+        });
+        eachfn(arr, function (x, callback) {
+            iterator(x.value, function (v) {
+                if (v) {
+                    results.push(x);
+                }
+                callback();
+            });
+        }, function (err) {
+            callback(_map(results.sort(function (a, b) {
+                return a.index - b.index;
+            }), function (x) {
+                return x.value;
+            }));
+        });
+    };
+    async.filter = doParallel(_filter);
+    async.filterSeries = doSeries(_filter);
+    // select alias
+    async.select = async.filter;
+    async.selectSeries = async.filterSeries;
+
+    var _reject = function (eachfn, arr, iterator, callback) {
+        var results = [];
+        arr = _map(arr, function (x, i) {
+            return {index: i, value: x};
+        });
+        eachfn(arr, function (x, callback) {
+            iterator(x.value, function (v) {
+                if (!v) {
+                    results.push(x);
+                }
+                callback();
+            });
+        }, function (err) {
+            callback(_map(results.sort(function (a, b) {
+                return a.index - b.index;
+            }), function (x) {
+                return x.value;
+            }));
+        });
+    };
+    async.reject = doParallel(_reject);
+    async.rejectSeries = doSeries(_reject);
+
+    var _detect = function (eachfn, arr, iterator, main_callback) {
+        eachfn(arr, function (x, callback) {
+            iterator(x, function (result) {
+                if (result) {
+                    main_callback(x);
+                    main_callback = function () {};
+                }
+                else {
+                    callback();
+                }
+            });
+        }, function (err) {
+            main_callback();
+        });
+    };
+    async.detect = doParallel(_detect);
+    async.detectSeries = doSeries(_detect);
+
+    async.some = function (arr, iterator, main_callback) {
+        async.each(arr, function (x, callback) {
+            iterator(x, function (v) {
+                if (v) {
+                    main_callback(true);
+                    main_callback = function () {};
+                }
+                callback();
+            });
+        }, function (err) {
+            main_callback(false);
+        });
+    };
+    // any alias
+    async.any = async.some;
+
+    async.every = function (arr, iterator, main_callback) {
+        async.each(arr, function (x, callback) {
+            iterator(x, function (v) {
+                if (!v) {
+                    main_callback(false);
+                    main_callback = function () {};
+                }
+                callback();
+            });
+        }, function (err) {
+            main_callback(true);
+        });
+    };
+    // all alias
+    async.all = async.every;
+
+    async.sortBy = function (arr, iterator, callback) {
+        async.map(arr, function (x, callback) {
+            iterator(x, function (err, criteria) {
+                if (err) {
+                    callback(err);
+                }
+                else {
+                    callback(null, {value: x, criteria: criteria});
+                }
+            });
+        }, function (err, results) {
+            if (err) {
+                return callback(err);
+            }
+            else {
+                var fn = function (left, right) {
+                    var a = left.criteria, b = right.criteria;
+                    return a < b ? -1 : a > b ? 1 : 0;
+                };
+                callback(null, _map(results.sort(fn), function (x) {
+                    return x.value;
+                }));
+            }
+        });
+    };
+
+    async.auto = function (tasks, callback) {
+        callback = callback || function () {};
+        var keys = _keys(tasks);
+        if (!keys.length) {
+            return callback(null);
+        }
+
+        var results = {};
+
+        var listeners = [];
+        var addListener = function (fn) {
+            listeners.unshift(fn);
+        };
+        var removeListener = function (fn) {
+            for (var i = 0; i < listeners.length; i += 1) {
+                if (listeners[i] === fn) {
+                    listeners.splice(i, 1);
+                    return;
+                }
+            }
+        };
+        var taskComplete = function () {
+            _each(listeners.slice(0), function (fn) {
+                fn();
+            });
+        };
+
+        addListener(function () {
+            if (_keys(results).length === keys.length) {
+                callback(null, results);
+                callback = function () {};
+            }
+        });
+
+        _each(keys, function (k) {
+            var task = (tasks[k] instanceof Function) ? [tasks[k]]: tasks[k];
+            var taskCallback = function (err) {
+                var args = Array.prototype.slice.call(arguments, 1);
+                if (args.length <= 1) {
+                    args = args[0];
+                }
+                if (err) {
+                    var safeResults = {};
+                    _each(_keys(results), function(rkey) {
+                        safeResults[rkey] = results[rkey];
+                    });
+                    safeResults[k] = args;
+                    callback(err, safeResults);
+                    // stop subsequent errors hitting callback multiple times
+                    callback = function () {};
+                }
+                else {
+                    results[k] = args;
+                    async.setImmediate(taskComplete);
+                }
+            };
+            var requires = task.slice(0, Math.abs(task.length - 1)) || [];
+            var ready = function () {
+                return _reduce(requires, function (a, x) {
+                    return (a && results.hasOwnProperty(x));
+                }, true) && !results.hasOwnProperty(k);
+            };
+            if (ready()) {
+                task[task.length - 1](taskCallback, results);
+            }
+            else {
+                var listener = function () {
+                    if (ready()) {
+                        removeListener(listener);
+                        task[task.length - 1](taskCallback, results);
+                    }
+                };
+                addListener(listener);
+            }
+        });
+    };
+
+    async.waterfall = function (tasks, callback) {
+        callback = callback || function () {};
+        if (tasks.constructor !== Array) {
+          var err = new Error('First argument to waterfall must be an array of functions');
+          return callback(err);
+        }
+        if (!tasks.length) {
+            return callback();
+        }
+        var wrapIterator = function (iterator) {
+            return function (err) {
+                if (err) {
+                    callback.apply(null, arguments);
+                    callback = function () {};
+                }
+                else {
+                    var args = Array.prototype.slice.call(arguments, 1);
+                    var next = iterator.next();
+                    if (next) {
+                        args.push(wrapIterator(next));
+                    }
+                    else {
+                        args.push(callback);
+                    }
+                    async.setImmediate(function () {
+                        iterator.apply(null, args);
+                    });
+                }
+            };
+        };
+        wrapIterator(async.iterator(tasks))();
+    };
+
+    var _parallel = function(eachfn, tasks, callback) {
+        callback = callback || function () {};
+        if (tasks.constructor === Array) {
+            eachfn.map(tasks, function (fn, callback) {
+                if (fn) {
+                    fn(function (err) {
+                        var args = Array.prototype.slice.call(arguments, 1);
+                        if (args.length <= 1) {
+                            args = args[0];
+                        }
+                        callback.call(null, err, args);
+                    });
+                }
+            }, callback);
+        }
+        else {
+            var results = {};
+            eachfn.each(_keys(tasks), function (k, callback) {
+                tasks[k](function (err) {
+                    var args = Array.prototype.slice.call(arguments, 1);
+                    if (args.length <= 1) {
+                        args = args[0];
+                    }
+                    results[k] = args;
+                    callback(err);
+                });
+            }, function (err) {
+                callback(err, results);
+            });
+        }
+    };
+
+    async.parallel = function (tasks, callback) {
+        _parallel({ map: async.map, each: async.each }, tasks, callback);
+    };
+
+    async.parallelLimit = function(tasks, limit, callback) {
+        _parallel({ map: _mapLimit(limit), each: _eachLimit(limit) }, tasks, callback);
+    };
+
+    async.series = function (tasks, callback) {
+        callback = callback || function () {};
+        if (tasks.constructor === Array) {
+            async.mapSeries(tasks, function (fn, callback) {
+                if (fn) {
+                    fn(function (err) {
+                        var args = Array.prototype.slice.call(arguments, 1);
+                        if (args.length <= 1) {
+                            args = args[0];
+                        }
+                        callback.call(null, err, args);
+                    });
+                }
+            }, callback);
+        }
+        else {
+            var results = {};
+            async.eachSeries(_keys(tasks), function (k, callback) {
+                tasks[k](function (err) {
+                    var args = Array.prototype.slice.call(arguments, 1);
+                    if (args.length <= 1) {
+                        args = args[0];
+                    }
+                    results[k] = args;
+                    callback(err);
+                });
+            }, function (err) {
+                callback(err, results);
+            });
+        }
+    };
+
+    async.iterator = function (tasks) {
+        var makeCallback = function (index) {
+            var fn = function () {
+                if (tasks.length) {
+                    tasks[index].apply(null, arguments);
+                }
+                return fn.next();
+            };
+            fn.next = function () {
+                return (index < tasks.length - 1) ? makeCallback(index + 1): null;
+            };
+            return fn;
+        };
+        return makeCallback(0);
+    };
+
+    async.apply = function (fn) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        return function () {
+            return fn.apply(
+                null, args.concat(Array.prototype.slice.call(arguments))
+            );
+        };
+    };
+
+    var _concat = function (eachfn, arr, fn, callback) {
+        var r = [];
+        eachfn(arr, function (x, cb) {
+            fn(x, function (err, y) {
+                r = r.concat(y || []);
+                cb(err);
+            });
+        }, function (err) {
+            callback(err, r);
+        });
+    };
+    async.concat = doParallel(_concat);
+    async.concatSeries = doSeries(_concat);
+
+    async.whilst = function (test, iterator, callback) {
+        if (test()) {
+            iterator(function (err) {
+                if (err) {
+                    return callback(err);
+                }
+                async.whilst(test, iterator, callback);
+            });
+        }
+        else {
+            callback();
+        }
+    };
+
+    async.doWhilst = function (iterator, test, callback) {
+        iterator(function (err) {
+            if (err) {
+                return callback(err);
+            }
+            if (test()) {
+                async.doWhilst(iterator, test, callback);
+            }
+            else {
+                callback();
+            }
+        });
+    };
+
+    async.until = function (test, iterator, callback) {
+        if (!test()) {
+            iterator(function (err) {
+                if (err) {
+                    return callback(err);
+                }
+                async.until(test, iterator, callback);
+            });
+        }
+        else {
+            callback();
+        }
+    };
+
+    async.doUntil = function (iterator, test, callback) {
+        iterator(function (err) {
+            if (err) {
+                return callback(err);
+            }
+            if (!test()) {
+                async.doUntil(iterator, test, callback);
+            }
+            else {
+                callback();
+            }
+        });
+    };
+
+    async.queue = function (worker, concurrency) {
+        if (concurrency === undefined) {
+            concurrency = 1;
+        }
+        function _insert(q, data, pos, callback) {
+          if(data.constructor !== Array) {
+              data = [data];
+          }
+          _each(data, function(task) {
+              var item = {
+                  data: task,
+                  callback: typeof callback === 'function' ? callback : null
+              };
+
+              if (pos) {
+                q.tasks.unshift(item);
+              } else {
+                q.tasks.push(item);
+              }
+
+              if (q.saturated && q.tasks.length === concurrency) {
+                  q.saturated();
+              }
+              async.setImmediate(q.process);
+          });
+        }
+
+        var workers = 0;
+        var q = {
+            tasks: [],
+            concurrency: concurrency,
+            saturated: null,
+            empty: null,
+            drain: null,
+            push: function (data, callback) {
+              _insert(q, data, false, callback);
+            },
+            unshift: function (data, callback) {
+              _insert(q, data, true, callback);
+            },
+            process: function () {
+                if (workers < q.concurrency && q.tasks.length) {
+                    var task = q.tasks.shift();
+                    if (q.empty && q.tasks.length === 0) {
+                        q.empty();
+                    }
+                    workers += 1;
+                    var next = function () {
+                        workers -= 1;
+                        if (task.callback) {
+                            task.callback.apply(task, arguments);
+                        }
+                        if (q.drain && q.tasks.length + workers === 0) {
+                            q.drain();
+                        }
+                        q.process();
+                    };
+                    var cb = only_once(next);
+                    worker(task.data, cb);
+                }
+            },
+            length: function () {
+                return q.tasks.length;
+            },
+            running: function () {
+                return workers;
+            }
+        };
+        return q;
+    };
+
+    async.cargo = function (worker, payload) {
+        var working     = false,
+            tasks       = [];
+
+        var cargo = {
+            tasks: tasks,
+            payload: payload,
+            saturated: null,
+            empty: null,
+            drain: null,
+            push: function (data, callback) {
+                if(data.constructor !== Array) {
+                    data = [data];
+                }
+                _each(data, function(task) {
+                    tasks.push({
+                        data: task,
+                        callback: typeof callback === 'function' ? callback : null
+                    });
+                    if (cargo.saturated && tasks.length === payload) {
+                        cargo.saturated();
+                    }
+                });
+                async.setImmediate(cargo.process);
+            },
+            process: function process() {
+                if (working) return;
+                if (tasks.length === 0) {
+                    if(cargo.drain) cargo.drain();
+                    return;
+                }
+
+                var ts = typeof payload === 'number'
+                            ? tasks.splice(0, payload)
+                            : tasks.splice(0);
+
+                var ds = _map(ts, function (task) {
+                    return task.data;
+                });
+
+                if(cargo.empty) cargo.empty();
+                working = true;
+                worker(ds, function () {
+                    working = false;
+
+                    var args = arguments;
+                    _each(ts, function (data) {
+                        if (data.callback) {
+                            data.callback.apply(null, args);
+                        }
+                    });
+
+                    process();
+                });
+            },
+            length: function () {
+                return tasks.length;
+            },
+            running: function () {
+                return working;
+            }
+        };
+        return cargo;
+    };
+
+    var _console_fn = function (name) {
+        return function (fn) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            fn.apply(null, args.concat([function (err) {
+                var args = Array.prototype.slice.call(arguments, 1);
+                if (typeof console !== 'undefined') {
+                    if (err) {
+                        if (console.error) {
+                            console.error(err);
+                        }
+                    }
+                    else if (console[name]) {
+                        _each(args, function (x) {
+                            console[name](x);
+                        });
+                    }
+                }
+            }]));
+        };
+    };
+    async.log = _console_fn('log');
+    async.dir = _console_fn('dir');
+    /*async.info = _console_fn('info');
+    async.warn = _console_fn('warn');
+    async.error = _console_fn('error');*/
+
+    async.memoize = function (fn, hasher) {
+        var memo = {};
+        var queues = {};
+        hasher = hasher || function (x) {
+            return x;
+        };
+        var memoized = function () {
+            var args = Array.prototype.slice.call(arguments);
+            var callback = args.pop();
+            var key = hasher.apply(null, args);
+            if (key in memo) {
+                callback.apply(null, memo[key]);
+            }
+            else if (key in queues) {
+                queues[key].push(callback);
+            }
+            else {
+                queues[key] = [callback];
+                fn.apply(null, args.concat([function () {
+                    memo[key] = arguments;
+                    var q = queues[key];
+                    delete queues[key];
+                    for (var i = 0, l = q.length; i < l; i++) {
+                      q[i].apply(null, arguments);
+                    }
+                }]));
+            }
+        };
+        memoized.memo = memo;
+        memoized.unmemoized = fn;
+        return memoized;
+    };
+
+    async.unmemoize = function (fn) {
+      return function () {
+        return (fn.unmemoized || fn).apply(null, arguments);
+      };
+    };
+
+    async.times = function (count, iterator, callback) {
+        var counter = [];
+        for (var i = 0; i < count; i++) {
+            counter.push(i);
+        }
+        return async.map(counter, iterator, callback);
+    };
+
+    async.timesSeries = function (count, iterator, callback) {
+        var counter = [];
+        for (var i = 0; i < count; i++) {
+            counter.push(i);
+        }
+        return async.mapSeries(counter, iterator, callback);
+    };
+
+    async.compose = function (/* functions... */) {
+        var fns = Array.prototype.reverse.call(arguments);
+        return function () {
+            var that = this;
+            var args = Array.prototype.slice.call(arguments);
+            var callback = args.pop();
+            async.reduce(fns, args, function (newargs, fn, cb) {
+                fn.apply(that, newargs.concat([function () {
+                    var err = arguments[0];
+                    var nextargs = Array.prototype.slice.call(arguments, 1);
+                    cb(err, nextargs);
+                }]))
+            },
+            function (err, results) {
+                callback.apply(that, [err].concat(results));
+            });
+        };
+    };
+
+    var _applyEach = function (eachfn, fns /*args...*/) {
+        var go = function () {
+            var that = this;
+            var args = Array.prototype.slice.call(arguments);
+            var callback = args.pop();
+            return eachfn(fns, function (fn, cb) {
+                fn.apply(that, args.concat([cb]));
+            },
+            callback);
+        };
+        if (arguments.length > 2) {
+            var args = Array.prototype.slice.call(arguments, 2);
+            return go.apply(this, args);
+        }
+        else {
+            return go;
+        }
+    };
+    async.applyEach = doParallel(_applyEach);
+    async.applyEachSeries = doSeries(_applyEach);
+
+    async.forever = function (fn, callback) {
+        function next(err) {
+            if (err) {
+                if (callback) {
+                    return callback(err);
+                }
+                throw err;
+            }
+            fn(next);
+        }
+        next();
+    };
+
+    // AMD / RequireJS
+    if (typeof define !== 'undefined' && define.amd) {
+        define([], function () {
+            return async;
+        });
+    }
+    // Node.js
+    else if (typeof module !== 'undefined' && module.exports) {
+        module.exports = async;
+    }
+    // included directly via <script> tag
+    else {
+        root.async = async;
+    }
+
+}());
+
+})(require("__browserify_process"))
+},{"__browserify_process":8}],10:[function(require,module,exports){
 (function(global){/**
  * @license
  * Lo-Dash 2.4.0 (Custom Build) <http://lodash.com/>
@@ -15264,5 +15401,1339 @@ exports.mixTo = function ( obj, collection ) {
 }.call(this));
 
 })(self)
-},{}]},{},[6,1])
+},{}],7:[function(require,module,exports){
+(function(){"use strict";
+/**
+ @fileOverview Queries objects in memory using a mongo-like notation for reaching into objects and filtering for records
+
+ @module ink/probe
+ @author Terry Weiss
+ @license MIT
+ */
+
+var sys = require( "lodash" );
+var Promise = require( 'promise' );
+var async = require( "async" );
+/**
+ The list of operators that are nested within the expression object. These take the form <code>{path:{operator:operand}}</code>
+ @private
+ **/
+var nestedOps = ["$eq", "$gt", "$gte", "$in", "$lt", "$lte", "$ne", "$nin", "$exists", "$mod", "$size", "$all"];
+
+/**
+ The list of operators that prefix the expression object. These take the form <code>{operator:{operands}}</code> or <code>{operator: [operands]}</code>
+ @private
+ **/
+var prefixOps = ["$and", "$or", "$nor", "$not"];
+
+/**
+ Processes a nested operator by picking the operator out of the expression object. Returns a formatted object that can be used for querying
+ @private
+ @param {string} path The path to element to work with
+ @param {object} operand The operands to use for the query
+ @return {object} A formatted operation definition
+ **/
+function processNestedOperator( path, operand ) {
+	var opKeys = Object.keys( operand );
+	return {
+		operation : opKeys[ 0 ],
+		operands  : [operand[ opKeys[ 0 ] ]],
+		path      : path
+	};
+}
+
+/**
+ Interogates a single query expression object and calls the appropriate handler for its contents
+ @private
+ @param {object} val The expression
+ @param {object} key The prefix
+ @returns {object} A formatted operation definition
+ **/
+function processExpressionObject( val, key ) {
+	var operator;
+	if ( sys.isObject( val ) ) {
+		var opKeys = Object.keys( val );
+		var op = opKeys[ 0 ];
+
+		if ( sys.indexOf( nestedOps, op ) > -1 ) {
+			operator = processNestedOperator( key, val );
+		} else if ( sys.indexOf( prefixOps, key ) > -1 ) {
+			operator = processPrefixOperator( key, val );
+		} else if ( op === "$regex" ) {
+			// special handling for regex options
+			operator = processNestedOperator( key, val );
+		} else if ( op === "$elemMatch" ) {
+			// elemMatch is just a weird duck
+			operator = {
+				path      : key,
+				operation : op,
+				operands  : []
+			};
+			sys.each( val[ op ], function ( entry ) {
+				operator.operands = parseQueryExpression( entry );
+			} );
+		}
+		else {
+			throw new Error( "Unrecognized operator" );
+		}
+	} else {
+		operator = processNestedOperator( key, { $eq : val } );
+	}
+	return operator;
+}
+
+/**
+ Processes a prefixed operator and then passes control to the nested operator method to pick out the contained values
+ @private
+ @param {string} operation The operation prefix
+ @param {object} operand The operands to use for the query
+ @return {object} A formatted operation definition
+ **/
+function processPrefixOperator( operation, operand ) {
+	var component = {
+		operation : operation,
+		path      : null,
+		operands  : []
+	};
+
+	if ( sys.isArray( operand ) ) {
+		//if it is an array we need to loop through the array and parse each operand
+		sys.each( operand, function ( obj ) {
+			sys.each( obj, function ( val, key ) {
+				component.operands.push( processExpressionObject( val, key ) );
+			} );
+		} );
+	} else {
+		//otherwise it is an object and we can parse it directly
+		sys.each( operand, function ( val, key ) {
+			component.operands.push( processExpressionObject( val, key ) );
+		} );
+	}
+	return component;
+
+}
+
+/**
+ Parses a query request and builds an object that can used to process a query target
+ @private
+ @param {object} obj The expression object
+ @returns {object} All components of the expression in a kind of execution tree
+ **/
+
+function parseQueryExpression( obj ) {
+	if ( sys.size( obj ) > 1 ) {
+		var arr = sys.map( obj, function ( v, k ) {
+			var entry = {};
+			entry[k] = v;
+			return entry;
+		} );
+		obj = {
+			$and : arr
+		};
+	}
+	var payload = [];
+	sys.each( obj, function ( val, key ) {
+
+		var exprObj = processExpressionObject( val, key );
+
+		if ( exprObj.operation === "$regex" ) {
+			exprObj.options = val.$options;
+		}
+
+		payload.push( exprObj );
+	} );
+
+	return payload;
+}
+
+/**
+ The delimiter to use when splitting an expression
+ @type {string}
+ @default '.'
+ **/
+
+exports.delimiter = '.';
+
+/**
+ Splits a path expression into its component parts
+ @private
+ @param {string} path The path to split
+ @returns {array}
+ **/
+
+function splitPath( path ) {
+	return path.split( exports.delimiter );
+}
+
+/**
+ Reaches into an object and allows you to get at a value deeply nested in an object
+ @private
+ @param {array} path The split path of the element to work with
+ @param {object} record The record to reach into
+ @return {*} Whatever was found in the record
+ **/
+function reachin( path, record ) {
+	var context = record;
+	var part;
+	var _i;
+	var _len;
+
+	for ( _i = 0, _len = path.length; _i < _len; _i++ ) {
+		part = path[_i];
+		context = context[part];
+		if ( sys.isNull( context ) || sys.isUndefined( context ) ) {
+			break;
+		}
+	}
+
+	return context;
+}
+
+/**
+ This will write the value into a record at the path, creating intervening objects if they don't exist
+ @private
+ @param {array} path The split path of the element to work with
+ @param {object} record The record to reach into
+ @param {string} setter The set command, defaults to $set
+ @param {object} newValue The value to write to the, or if the operator is $pull, the query of items to look for
+ */
+function pushin( path, record, setter, newValue ) {
+	var context = record;
+	var parent = record;
+	var lastPart = null;
+	var _i;
+	var _len;
+	var part;
+	var keys;
+
+	for ( _i = 0, _len = path.length; _i < _len; _i++ ) {
+		part = path[_i];
+		lastPart = part;
+		parent = context;
+		context = context[part];
+		if ( sys.isNull( context ) || sys.isUndefined( context ) ) {
+			parent[part] = {};
+			context = parent[part];
+		}
+	}
+
+	if ( sys.isEmpty( setter ) || setter === '$set' ) {
+		parent[lastPart] = newValue;
+		return parent[lastPart];
+	} else {
+		switch ( setter ) {
+			case '$inc':
+				/**
+				 * Increments a field by the amount you specify. It takes the form
+				 * `{ $inc: { field1: amount } }`
+				 * @name $inc
+				 * @memberOf module:ink/probe.updateOperators
+				 * @example
+				 * var probe = require("ink-probe");
+				 * probe.update( obj, {'name.last' : 'Owen', 'name.first' : 'LeRoy'},
+				 * {$inc : {'password.changes' : 2}} );
+				 */
+
+				if ( !sys.isNumber( newValue ) ) {
+					newValue = 1;
+				}
+				if ( sys.isNumber( parent[lastPart] ) ) {
+					parent[lastPart] = parent[lastPart] + newValue;
+					return parent[lastPart];
+				}
+				break;
+			case '$dec':
+				/**
+				 * Decrements a field by the amount you specify. It takes the form
+				 * `{ $dec: { field1: amount }`
+                 * @name $dec
+				 * @memberOf module:ink/probe.updateOperators
+				 * @example
+				 *  var probe = require("ink-probe");
+				 * probe.update( obj, {'name.last' : 'Owen', 'name.first' : 'LeRoy'},
+				 * {$dec : {'password.changes' : 2}} );
+				 */
+
+				if ( !sys.isNumber( newValue ) ) {
+					newValue = 1;
+				}
+				if ( sys.isNumber( parent[lastPart] ) ) {
+					parent[lastPart] = parent[lastPart] - newValue;
+					return parent[lastPart];
+				}
+				break;
+			case '$unset':
+				/**
+				 * Removes the field from the object. It takes the form
+				 * `{ $unset: { field1: "" } }`
+				 * @name $unset
+				 * @memberOf module:ink/probe.updateOperators
+				 * @example
+				 * var probe = require("ink-probe");
+				 * probe.update( data, {'name.first' : 'Yogi'}, {$unset : {'name.first' : ''}} );
+				 */
+
+				return delete parent[lastPart];
+			case '$pop':
+				/**
+				 * The $pop operator removes the first or last element of an array. Pass $pop a value of 1 to remove the last element
+				 * in an array and a value of -1 to remove the first element of an array. This will only work on arrays. Syntax:
+				 * `{ $pop: { field: 1 } }` or `{ $pop: { field: -1 } }`
+				 * @name $pop
+				 * @memberOf module:ink/probe.updateOperators
+				 * @example
+				 * var probe = require("ink-probe");
+				 * // attr is the name of the array field
+				 * probe.update( data, {_id : '511d18827da2b88b09000133'}, {$pop : {attr : 1}} );
+				 */
+
+				if ( sys.isArray( parent[lastPart] ) ) {
+					if ( !sys.isNumber( newValue ) ) {
+						newValue = 1;
+					}
+					if ( newValue === 1 ) {
+						return parent[lastPart].pop();
+					} else {
+						return parent[lastPart].shift();
+					}
+				}
+				break;
+			case '$push':
+				/**
+				 * The $push operator appends a specified value to an array. It looks like this:
+				 * `{ $push: { <field>: <value> } }`
+				 * @name $push
+				 * @memberOf module:ink/probe.updateOperators
+				 * @example
+				 * var probe = require("ink-probe");
+				 * // attr is the name of the array field
+				 * probe.update( data, {_id : '511d18827da2b88b09000133'},
+				 * {$push : {attr : {"hand" : "new", "color" : "new"}}} );
+				 */
+
+				if ( sys.isArray( parent[lastPart] ) ) {
+					return parent[lastPart].push( newValue );
+				}
+				break;
+			case '$pull':
+				/**
+				 * The $pull operator removes all instances of a value from an existing array. It looks like this:
+				 * `{ $pull: { field: <query> } }`
+				 * @name $pull
+				 * @memberOf module:ink/probe.updateOperators
+				 * @example
+				 * var probe = require("ink-probe");
+				 * // attr is the name of the array field
+				 * probe.update( data, {'email' : 'EWallace.43@fauxprisons.com'},
+				 * {$pull : {attr : {"color" : "green"}}} );
+				 */
+
+				if ( sys.isArray( parent[lastPart] ) ) {
+					keys = exports.findKeys( parent[lastPart], newValue );
+					sys.each( keys, function ( val, index ) {
+						return delete parent[lastPart][index];
+					} );
+					parent[lastPart] = sys.compact( parent[lastPart] );
+					return parent[lastPart];
+				}
+		}
+	}
+}
+
+/**
+ The query operations that evaluate directly from an operation
+ @private
+ **/
+var operations = {
+	/**
+	 * `$eq` performs a `===` comparison by comparing the value directly if it is an atomic value.
+	 * otherwise if it is an array, it checks to see if the value looked for is in the array.
+	 * `{field: value}` or `{field: {$eq : value}}` or `{array: value}` or `{array: {$eq : value}}`
+	 * @name $eq
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {categories : "cat1"} );
+	 * // is the same as
+	 * probe.find( data, {categories : {$eq: "cat1"}} );
+	 */
+
+	$eq        : function ( qu, value ) {
+		if ( sys.isArray( value ) ) {
+			return sys.find( value, function ( entry ) {
+				return JSON.stringify( qu.operands[0] ) === JSON.stringify( entry );
+			} ) !== void 0;
+		} else {
+			return JSON.stringify( qu.operands[0] ) === JSON.stringify( value );
+		}
+	},
+	/**
+	 *  `$ne` performs a `!==` comparison by comparing the value directly if it is an atomic value. Otherwise, if it is an array
+	 * this is performs a "not in array".
+	 * '{field: {$ne : value}}` or '{array: {$ne : value}}`
+	 * @name $ne
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {"name.first" : {$ne : "Sheryl"}} );
+	 */
+
+	$ne        : function ( qu, value ) {
+		if ( sys.isArray( value ) ) {
+			return sys.find( value, function ( entry ) {
+				return JSON.stringify( qu.operands[0] ) !== JSON.stringify( entry );
+			} ) !== void 0;
+		} else {
+			return JSON.stringify( qu.operands[0] ) !== JSON.stringify( value );
+		}
+	},
+	/**
+	 * `$all` checks to see if all of the members of the query are included in an array
+	 * `{array: {$all: [val1, val2, val3]}}`
+	 * @name $all
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {"categories" : {$all : ["cat4", "cat2", "cat1"]}} );
+	 */
+
+	$all       : function ( qu, value ) {
+		var operands, result;
+
+		result = false;
+		if ( sys.isArray( value ) ) {
+			operands = sys.flatten( qu.operands );
+			result = sys.intersection( operands, value ).length === operands.length;
+		}
+		return result;
+	},
+	/**
+	 * `$gt` Sees if a field is greater than the value
+	 * `{field: {$gt: value}}`
+	 * @name $gt
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {"age" : {$gt : 24}} );
+	 */
+
+	$gt        : function ( qu, value ) {
+		return qu.operands[0] < value;
+	},
+	/**
+	 * `$gte` Sees if a field is greater than or equal to the value
+	 * `{field: {$gte: value}}`
+	 * @name $gte
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {"age" : {$gte : 50}} );
+	 */
+
+	$gte       : function ( qu, value ) {
+		return qu.operands[0] <= value;
+	},
+	/**
+	 * `$lt` Sees if a field is less than the value
+	 * `{field: {$lt: value}}`
+	 * @name $lt
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {"age" : {$lt : 24}} );
+	 */
+
+	$lt        : function ( qu, value ) {
+		return qu.operands[0] > value;
+	},
+	/**
+	 * `$lte` Sees if a field is less than or equal to the value
+	 * `{field: {$lte: value}}`
+	 * @name $lte
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {"age" : {$lte : 50}} );
+	 */
+
+	$lte       : function ( qu, value ) {
+		return qu.operands[0] >= value;
+	},
+	/**
+	 * `$in` Sees if a field has one of the values in the query
+	 * `{field: {$in: [test1, test2, test3,...]}}`
+	 * @name $in
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {"age" : {$in : [24, 28, 60]}} );
+	 */
+
+	$in        : function ( qu, value ) {
+		var operands;
+
+		operands = sys.flatten( qu.operands );
+		return sys.indexOf( operands, value ) > -1;
+	},
+	/**
+	 * `$nin` Sees if a field has none of the values in the query
+	 * `{field: {$nin: [test1, test2, test3,...]}}`
+	 * @name $nin
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {"age" : {$nin : [24, 28, 60]}} );
+	 */
+
+	$nin       : function ( qu, value ) {
+		var operands;
+
+		operands = sys.flatten( qu.operands );
+		return sys.indexOf( operands, value ) === -1;
+	},
+	/**
+	 * `$exists` Sees if a field exists.
+	 * `{field: {$exists: true|false}}`
+	 * @name $exists
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {"name.middle" : {$exists : true}} );
+	 */
+
+	$exists    : function ( qu, value ) {
+		return (sys.isNull( value ) || sys.isUndefined( value )) !== qu.operands[0];
+	},
+	/**
+	 * Checks equality to a modulus operation on a field
+	 * `{field: {$mod: [divisor, remainder]}}`
+	 * @name $mod
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {"age" : {$mod : [2, 0]}} );
+	 */
+
+	$mod       : function ( qu, value ) {
+		var operands = sys.flatten( qu.operands );
+		if ( operands.length !== 2 ) {
+			throw new Error( "$mod requires two operands" );
+		}
+		var mod = operands[0];
+		var rem = operands[1];
+		return value % mod === rem;
+	},
+	/**
+	 * Compares the size of the field/array to the query. This can be used on arrays, strings and objects (where it will count keys)
+	 * `{'field|array`: {$size: value}}`
+	 * @name $size
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {attr : {$size : 3}} );
+	 */
+
+	$size      : function ( qu, value ) {
+		return sys.size( value ) === qu.operands[0];
+	},
+	/**
+	 * Performs a regular expression test againts the field
+	 * `{field: {$regex: re, $options: reOptions}}`
+	 * @name $regex
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {"name.first" : {$regex : "m*", $options : "i"}} );
+	 */
+
+	$regex     : function ( qu, value ) {
+		var r = new RegExp( qu.operands[0], qu.options );
+		return r.test( value );
+	},
+	/**
+	 * This is like $all except that it works with an array of objects or value. It checks to see the array matches all
+	 * of the conditions of the query
+	 * `{array: {$elemMatch: {path: value, path: {$operation: value2}}}`
+     * @name $elemMatch
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {attr : {$elemMatch : [
+     *  {color : "red", "hand" : "left"}
+     * ]}} );
+	 */
+	$elemMatch : function ( qu, value ) {
+		var expression, test, _i, _len;
+
+		if ( sys.isArray( value ) ) {
+			var _ref = qu.operands;
+			for ( _i = 0, _len = _ref.length; _i < _len; _i++ ) {
+				expression = _ref[_i];
+				if ( expression.path ) {
+					expression.splitPath = splitPath( expression.path );
+				}
+			}
+			test = execQuery( value, qu.operands, null, true ).arrayResults;
+		}
+		return test.length > 0;
+	},
+	/**
+	 * Returns true if all of the conditions of the query are met
+	 * `{$and: [query1, query2, query3]}`
+	 * @name $and
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {$and : [
+     *      {"name.first" : "Mildred"},
+     *      {"name.last" : "Graves"}
+     * ]} );
+	 */
+
+	$and       : function ( qu, value, record ) {
+		var isAnd = false;
+
+		sys.each( qu.operands, function ( expr ) {
+			if ( expr.path ) {
+				expr.splitPath = expr.splitPath || splitPath( expr.path );
+			}
+			var test = reachin( expr.splitPath, record, expr.operation );
+			isAnd = operations[expr.operation]( expr, test, record );
+			if ( !isAnd ) {
+				return false;
+			}
+		} );
+
+		return isAnd;
+	},
+	/**
+	 * Returns true if any of the conditions of the query are met
+	 * `{$or: [query1, query2, query3]}`
+	 * @name $or
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {$or : [
+     *      "age" : {$in : [24, 28, 60]}},
+	 *      {categories : "cat1"}
+	 * ]} );
+	 */
+	$or        : function ( qu, value, record ) {
+		var isOr = false;
+		sys.each( qu.operands, function ( expr ) {
+			if ( expr.path ) {
+				expr.splitPath = expr.splitPath || splitPath( expr.path );
+			}
+			var test = reachin( expr.splitPath, record, expr.operation );
+			isOr = operations[expr.operation]( expr, test, record );
+			if ( isOr ) {
+				return false;
+			}
+		} );
+
+		return isOr;
+	},
+	/**
+	 * Returns true if none of the conditions of the query are met
+	 * `{$nor: [query1, query2, query3]}`
+	 * @name $nor
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {$nor : [
+     *      {"age" : {$in : [24, 28, 60]}},
+     *      {categories : "cat1"}
+     * ]} );
+	 */
+	$nor       : function ( qu, value, record ) {
+		var isOr = false;
+		sys.each( qu.operands, function ( expr ) {
+			if ( expr.path ) {
+				expr.splitPath = expr.splitPath || splitPath( expr.path );
+			}
+			var test = reachin( expr.splitPath, record, expr.operation );
+			isOr = operations[expr.operation]( expr, test, record );
+			if ( isOr ) {
+				return false;
+			}
+		} );
+
+		return !isOr;
+	},
+	/**
+	 * Logical NOT on the conditions of the query
+	 * `{$not: [query1, query2, query3]}`
+	 * @name $not
+	 * @memberOf module:ink/probe.queryOperators
+	 * @example
+	 * var probe = require("ink-probe");
+	 * probe.find( data, {$not : {"age" : {$lt : 24}}} );
+	 */
+	$not       : function ( qu, value, record ) {
+
+		var result = false;
+		sys.each( qu.operands, function ( expr ) {
+			if ( expr.path ) {
+				expr.splitPath = expr.splitPath || splitPath( expr.path );
+			}
+			var test = reachin( expr.splitPath, record, expr.operation );
+			result = operations[expr.operation]( expr, test, record );
+			if ( result ) {
+				return false;
+			}
+		} );
+
+		return !result;
+
+	}
+};
+
+/**
+ Executes a query by traversing a document and evaluating each record
+ @private
+ @param {array|object} obj The object to query
+ @param {object} qu The query to execute
+ @param {boolean} shortCircuit When true, the condition that matches the query stops evaluation for that record, otherwise all conditions have to be met
+ @param {boolean} stopOnFirst When true all evaluation stops after the first record is found to match the conditons
+ **/
+function execQuery( obj, qu, shortCircuit, stopOnFirst ) {
+	var arrayResults = [];
+	var keyResults = [];
+	sys.each( obj, function ( record, key ) {
+		var expr, result, test, _i, _len;
+
+		for ( _i = 0, _len = qu.length; _i < _len; _i++ ) {
+			expr = qu[_i];
+			if ( expr.splitPath ) {
+				test = reachin( expr.splitPath, record, expr.operation );
+			}
+			result = operations[expr.operation]( expr, test, record );
+			if ( result ) {
+				arrayResults.push( record );
+				keyResults.push( key );
+			}
+			if ( !result && shortCircuit ) {
+				break;
+			}
+		}
+		if ( arrayResults.length > 0 && stopOnFirst ) {
+			return false;
+		}
+	} );
+	return {
+		arrayResults : arrayResults,
+		keyResults   : keyResults
+	};
+}
+
+/**
+ Updates all records in obj that match the query. See {@link module:ink/probe.updateOperators} for the operators that are supported.
+ @param {object|array} obj The object to update
+ @param {object} qu The query which will be used to identify the records to updated
+ @param {object} setDocument The update operator. See {@link module:ink/probe.updateOperators}
+ */
+exports.update = function ( obj, qu, setDocument ) {
+	var records = exports.find( obj, qu );
+	return sys.each( records, function ( record ) {
+		return sys.each( setDocument, function ( fields, operator ) {
+			return sys.each( fields, function ( newValue, path ) {
+				return pushin( splitPath( path ), record, operator, newValue );
+			} );
+		} );
+	} );
+};
+/**
+ Find all records that match a query
+ @param {array|object} obj The object to query
+ @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
+ @returns {array} The results
+ **/
+exports.find = function ( obj, qu ) {
+	var expression, _i, _len;
+
+	var query = parseQueryExpression( qu );
+	for ( _i = 0, _len = query.length; _i < _len; _i++ ) {
+		expression = query[_i];
+		if ( expression.path ) {
+			expression.splitPath = splitPath( expression.path );
+		}
+	}
+	return execQuery( obj, query ).arrayResults;
+};
+/**
+ Find all records that match a query and returns the keys for those items. This is similar to {@link module:ink/probe.find} but instead of returning
+ records, returns the keys. If `obj` is an object it will return the hash key. If 'obj' is an array, it will return the index
+ @param {array|object} obj The object to query
+ @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
+ @returns {array}
+ */
+exports.findKeys = function ( obj, qu ) {
+	var expression, _i, _len;
+
+	var query = parseQueryExpression( qu );
+	for ( _i = 0, _len = query.length; _i < _len; _i++ ) {
+		expression = query[_i];
+		if ( expression.path ) {
+			expression.splitPath = splitPath( expression.path );
+		}
+	}
+	return execQuery( obj, query ).keyResults;
+};
+
+/**
+ Returns the first record that matches the query. Aliased as `seek`.
+ @param {array|object} obj The object to query
+ @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
+ @returns {object}
+ */
+exports.findOne = function ( obj, qu ) {
+	var expression, _i, _len;
+
+	var query = parseQueryExpression( qu );
+	for ( _i = 0, _len = query.length; _i < _len; _i++ ) {
+		expression = query[_i];
+		if ( expression.path ) {
+			expression.splitPath = splitPath( expression.path );
+		}
+	}
+	var results = execQuery( obj, query, false, true ).arrayResults;
+	if ( results.length > 0 ) {
+		return results[0];
+	} else {
+		return null;
+	}
+};
+exports.seek = exports.findOne;
+/**
+ Returns the first record that matches the query and returns its key or index depending on whether `obj` is an object or array respectively.
+ Aliased as `seekKey`.
+ @param {array|object} obj The object to query
+ @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
+ @returns {object}
+ */
+exports.findOneKey = function ( obj, qu ) {
+	var expression, _i, _len;
+
+	var query = parseQueryExpression( qu );
+	for ( _i = 0, _len = query.length; _i < _len; _i++ ) {
+		expression = query[_i];
+		if ( expression.path ) {
+			expression.splitPath = splitPath( expression.path );
+		}
+	}
+	var results = execQuery( obj, query, false, true ).keyResults;
+	if ( results.length > 0 ) {
+		return results[0];
+	} else {
+		return null;
+	}
+};
+exports.seekKey = exports.findOneKey;
+
+/**
+ Remove all items in the object/array that match the query
+ @param {array|object} obj The object to query
+ @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
+ @return {object|array} The array or object as appropriate without the records.
+ **/
+exports.remove = function ( obj, qu ) {
+	var expression, _i, _len;
+
+	var query = parseQueryExpression( qu );
+	for ( _i = 0, _len = query.length; _i < _len; _i++ ) {
+		expression = query[_i];
+		if ( expression.path ) {
+			expression.splitPath = splitPath( expression.path );
+		}
+	}
+	var results = execQuery( obj, query, false, false ).keyResults;
+	if ( sys.isArray( obj ) ) {
+		var newArr = [];
+		sys.each( obj, function ( item, index ) {
+			if ( sys.indexOf( results, index ) === -1 ) {
+				return newArr.push( item );
+			}
+		} );
+		return newArr;
+	} else {
+		sys.each( results, function ( key ) {
+			return delete obj[key];
+		} );
+		return obj;
+	}
+};
+/**
+ Returns true if all items match the query
+
+ @param {array|object} obj The object to query
+ @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
+ @returns {boolean}
+ **/
+exports.all = function ( obj, qu ) {
+	return exports.find( obj, qu ).length === sys.size( obj );
+};
+
+/**
+ Returns true if any of the items match the query
+
+ @param {array|object} obj The object to query
+ @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
+ @returns {boolean}
+ **/
+exports.any = function ( obj, qu ) {
+	var expression, _i, _len;
+
+	var query = parseQueryExpression( qu );
+	for ( _i = 0, _len = query.length; _i < _len; _i++ ) {
+		expression = query[_i];
+		if ( expression.path ) {
+			expression.splitPath = splitPath( expression.path );
+		}
+	}
+	var results = execQuery( obj, query, true, true ).keyResults;
+	return results.length > 0;
+};
+
+/**
+ Returns the set of unique records that match a query
+ @param {array|object} obj The object to query
+ @param {object} qu The query to execute. See {@link module:ink/probe.queryOperators} for the operators you can use.
+ @return {array}
+ **/
+exports.unique = function ( obj, qu ) {
+	var test = exports.find( obj, qu );
+	return sys.unique( test, function ( item ) {
+		return JSON.stringify( item );
+	} );
+};
+
+/**
+ This will write the value into a record at the path, creating intervening objects if they don't exist. This does not work as filtered
+ update and is meant to be used on a single record. It is a nice way of setting a property at an arbitrary depth at will.
+
+ @param {array} path The split path of the element to work with
+ @param {object} record The record to reach into
+ @param {string} setter The set operation.  See {@link module:ink/probe.updateOperators} for the operators you can use.
+ @param {object} newValue The value to write to the, or if the operator is $pull, the query of items to look for
+ */
+exports.set = function ( record, path, setter, newValue ) {
+	return pushin( splitPath( path ), record, setter, newValue );
+};
+
+/**
+ Reaches into an object and allows you to get at a value deeply nested in an object. This is not a query, but a
+ straight reach in, useful for event bindings
+
+ @param {array} path The split path of the element to work with
+ @param {object} record The record to reach into
+ @return {*} Whatever was found in the record
+ **/
+exports.get = function ( record, path ) {
+	return reachin( splitPath( path ), record );
+};
+
+/**
+ Returns true if any of the items match the query. Aliases as `any`
+ @function
+ @param {array|object} obj The object to query
+ @param {object} qu The query to execute
+ @returns {boolean}
+ */
+exports.some = exports.any;
+
+/**
+ Returns true if all items match the query. Aliases as `all`
+ @function
+ @param {array|object} obj The object to query
+ @param {object} qu The query to execute
+ @returns {boolean}
+ */
+exports.every = exports.all;
+
+var bindables = {
+	any        : exports.any,
+	all        : exports.all,
+	remove     : exports.remove,
+	seekKey    : exports.seekKey,
+	seek       : exports.seek,
+	findOneKey : exports.findOneKey,
+	findOne    : exports.findOne,
+	findKeys   : exports.findKeys,
+	find       : exports.find,
+	update     : exports.update,
+	some       : exports.some,
+	every      : exports.every,
+	"get"      : exports.get,
+	"set"      : exports.set
+};
+
+var dataBinderOptions = exports.dataBinderOptions = {
+	getter         : null,
+	getterAsync    : false,
+	setter         : null,
+	validator      : null,
+	validatorAsync : false,
+	setterAsync    : false
+};
+
+exports.unfasten = function ( path, record ) {
+	var context = record;
+	var lastParent = context;
+	var parts = path.split( exports.delimiter );
+	var lastPartName = path;
+	var lastParentName;
+	sys.each( parts, function ( part ) {
+		lastParentName = part;
+		lastParent = context;
+		context = context[part];
+		lastPartName = part;
+		if ( sys.isNull( context ) || sys.isUndefined( context ) ) {
+			context = {};
+		}
+	} );
+
+	if ( lastParent === context ) {
+		deleteBindings( record, lastPartName );
+	} else {
+		deleteBindings( lastParent, lastPartName );
+	}
+
+	function deleteBindings( mountPoint, mountName ) {
+		mountPoint[mountName] = mountPoint["__" + mountName + "__"];
+		delete mountPoint["__" + mountName + "__"];
+	}
+} ;
+
+exports.fasten = function ( path, record, options ) {
+	options = sys.extend( {}, dataBinderOptions, options );
+	var context = record;
+	var lastParent = context;
+	var parts = path.split( exports.delimiter );
+	var lastPartName = path;
+	var lastParentName;
+
+	sys.each( parts, function ( part ) {
+		lastParentName = part;
+		lastParent = context;
+		context = context[part];
+		lastPartName = part;
+		if ( sys.isNull( context ) || sys.isUndefined( context ) ) {
+			context = {};
+		}
+	} );
+
+	if ( lastParent === context ) {
+		setUpBindings( record, lastPartName );
+	} else {
+		setUpBindings( lastParent, lastPartName );
+	}
+
+	function setUpBindings( mountPoint, mountName ) {
+		mountPoint["__" + mountName + "__"] = mountPoint[mountName];
+		Object.defineProperty( mountPoint, mountName, {
+			get : function () {
+				if ( sys.isFunction( options.getter ) ) {
+					var promise;
+					if ( options.getterAsync === true ) {
+						promise = Promise.denodeify( options.getter );
+					}
+
+					if ( promise ) {
+						return promise( mountPoint["__" + mountName + "__"] ).then( function ( val ) {
+							mountPoint["__" + mountName + "__"] = val;
+						} );
+					} else {
+						mountPoint["__" + mountName + "__"] = options.getter( mountPoint["__" + mountName + "__"] );
+						return mountPoint["__" + mountName + "__"];
+					}
+
+				} else {
+					return mountPoint["__" + mountName + "__"];
+				}
+			},
+			set : function ( val ) {
+				async.waterfall( [
+					function ( done ) {
+						if ( sys.isFunction( options.validator ) ) {
+							if ( options.validatorAsync ) {
+								options.validator( val, mountPoint["__" + mountName + "__"], record, done );
+							} else {
+								var res = options.validator( val, mountPoint["__" + mountName + "__"], record );
+								if ( res === true ) {
+									done();
+								} else {
+									done( res );
+								}
+							}
+						} else {
+							done();
+						}
+					},
+					function ( done ) {
+						if ( sys.isFunction( options.setter ) ) {
+							if ( options.setterAsync === true ) {
+								options.setter( val, mountPoint["__" + mountName + "__"], record, done );
+							} else {
+								done( null, options.setter( val, mountPoint["__" + mountName + "__"], record ) );
+							}
+						} else {
+							done( null, val );
+						}
+					}
+				], function ( err, newVal ) {
+					if ( err ) { throw new Error( err ); }
+					mountPoint["__" + mountName + "__"] = newVal;
+				} );
+
+			}
+		} );
+	}
+
+	return context;
+};
+
+/**
+ Binds the query and update methods to a new object. When called these
+ methods can skip the first parameter so that find(object, query) can just be called as find(query)
+ @param {object|array} obj The object or array to bind to
+ @return {object} An object with method bindings in place
+ **/
+exports.proxy = function ( obj ) {
+	var retVal;
+
+	retVal = {};
+	sys.each( bindables, function ( val, key ) {
+		retVal[key] = sys.bind( val, obj, obj );
+	} );
+	return retVal;
+};
+
+/**
+ Binds the query and update methods to a specific object and adds the methods to that object. When called these
+ methods can skip the first parameter so that find(object, query) can just be called as object.find(query)
+ @param {object|array} obj The object or array to bind to
+ @param {object|array=} collection If the collection is not the same as <code>this</code> but is a property, or even
+ a whole other object, you specify that here. Otherwise the <code>obj</code> is assumed to be the same as the collecion
+ **/
+exports.mixin = function ( obj, collection ) {
+	collection = collection || obj;
+	return sys.each( bindables, function ( val, key ) {
+		obj[key] = sys.bind( val, obj, collection );
+	} );
+};
+
+})()
+},{"async":9,"lodash":10,"promise":11}],11:[function(require,module,exports){
+'use strict'
+
+//This file contains then/promise specific extensions to the core promise API
+
+var Promise = require('./core.js')
+var nextTick = require('./lib/next-tick')
+
+module.exports = Promise
+
+/* Static Functions */
+
+Promise.from = function (value) {
+  if (value instanceof Promise) return value
+  return new Promise(function (resolve) { resolve(value) })
+}
+Promise.denodeify = function (fn) {
+  return function () {
+    var self = this
+    var args = Array.prototype.slice.call(arguments)
+    return new Promise(function (resolve, reject) {
+      args.push(function (err, res) {
+        if (err) reject(err)
+        else resolve(res)
+      })
+      fn.apply(self, args)
+    })
+  }
+}
+Promise.nodeify = function (fn) {
+  return function () {
+    var args = Array.prototype.slice.call(arguments)
+    var callback = typeof args[args.length - 1] === 'function' ? args.pop() : null
+    try {
+      return fn.apply(this, arguments).nodeify(callback)
+    } catch (ex) {
+      if (callback == null) {
+        return new Promise(function (resolve, reject) { reject(ex) })
+      } else {
+        nextTick(function () {
+          callback(ex)
+        })
+      }
+    }
+  }
+}
+
+Promise.all = function () {
+  var args = Array.prototype.slice.call(arguments.length === 1 && Array.isArray(arguments[0]) ? arguments[0] : arguments)
+
+  return new Promise(function (resolve, reject) {
+    if (args.length === 0) return resolve([])
+    var remaining = args.length
+    function res(i, val) {
+      try {
+        if (val && (typeof val === 'object' || typeof val === 'function')) {
+          var then = val.then
+          if (typeof then === 'function') {
+            then.call(val, function (val) { res(i, val) }, reject)
+            return
+          }
+        }
+        args[i] = val
+        if (--remaining === 0) {
+          resolve(args);
+        }
+      } catch (ex) {
+        reject(ex)
+      }
+    }
+    for (var i = 0; i < args.length; i++) {
+      res(i, args[i])
+    }
+  })
+}
+
+/* Prototype Methods */
+
+Promise.prototype.done = function (onFulfilled, onRejected) {
+  var self = arguments.length ? this.then.apply(this, arguments) : this
+  self.then(null, function (err) {
+    nextTick(function () {
+      throw err
+    })
+  })
+}
+Promise.prototype.nodeify = function (callback) {
+  if (callback == null) return this
+
+  this.then(function (value) {
+    nextTick(function () {
+      callback(null, value)
+    })
+  }, function (err) {
+    nextTick(function () {
+      callback(err)
+    })
+  })
+}
+},{"./core.js":12,"./lib/next-tick":13}],13:[function(require,module,exports){
+(function(process){'use strict'
+
+if (typeof setImmediate === 'function') { // IE >= 10 & node.js >= 0.10
+  module.exports = function(fn){ setImmediate(fn) }
+} else if (typeof process !== 'undefined' && process && typeof process.nextTick === 'function') { // node.js before 0.10
+  module.exports = function(fn){ process.nextTick(fn) }
+} else {
+  module.exports = function(fn){ setTimeout(fn, 0) }
+}
+
+})(require("__browserify_process"))
+},{"__browserify_process":8}],12:[function(require,module,exports){
+'use strict'
+
+var nextTick = require('./lib/next-tick')
+
+module.exports = Promise
+function Promise(fn) {
+  if (!(this instanceof Promise)) return new Promise(fn)
+  if (typeof fn !== 'function') throw new TypeError('not a function')
+  var state = null
+  var delegating = false
+  var value = null
+  var deferreds = []
+  var self = this
+
+  this.then = function(onFulfilled, onRejected) {
+    return new Promise(function(resolve, reject) {
+      handle(new Handler(onFulfilled, onRejected, resolve, reject))
+    })
+  }
+
+  function handle(deferred) {
+    if (state === null) {
+      deferreds.push(deferred)
+      return
+    }
+    nextTick(function() {
+      var cb = state ? deferred.onFulfilled : deferred.onRejected
+      if (cb === null) {
+        (state ? deferred.resolve : deferred.reject)(value)
+        return
+      }
+      var ret
+      try {
+        ret = cb(value)
+      }
+      catch (e) {
+        deferred.reject(e)
+        return
+      }
+      deferred.resolve(ret)
+    })
+  }
+
+  function resolve(newValue) {
+    if (delegating)
+      return
+    resolve_(newValue)
+  }
+
+  function resolve_(newValue) {
+    if (state !== null)
+      return
+    try { //Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+      if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.')
+      if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+        var then = newValue.then
+        if (typeof then === 'function') {
+          delegating = true
+          then.call(newValue, resolve_, reject_)
+          return
+        }
+      }
+      state = true
+      value = newValue
+      finale()
+    } catch (e) { reject_(e) }
+  }
+
+  function reject(newValue) {
+    if (delegating)
+      return
+    reject_(newValue)
+  }
+
+  function reject_(newValue) {
+    if (state !== null)
+      return
+    state = false
+    value = newValue
+    finale()
+  }
+
+  function finale() {
+    for (var i = 0, len = deferreds.length; i < len; i++)
+      handle(deferreds[i])
+    deferreds = null
+  }
+
+  try { fn(resolve, reject) }
+  catch(e) { reject(e) }
+}
+
+
+function Handler(onFulfilled, onRejected, resolve, reject){
+  this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null
+  this.onRejected = typeof onRejected === 'function' ? onRejected : null
+  this.resolve = resolve
+  this.reject = reject
+}
+
+},{"./lib/next-tick":13}]},{},[6,1])
 ;
